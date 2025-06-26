@@ -1,0 +1,133 @@
+lib/
+├── core/
+│   ├── constants/
+│   │   ├── app_colors.dart
+│   │   ├── app_strings.dart
+│   │   ├── app_sizes.dart
+│   │   └── api_endpoints.dart
+│   ├── errors/
+│   │   ├── exceptions.dart
+│   │   └── failures.dart
+│   ├── network/
+│   │   ├── api_client.dart
+│   │   └── network_info.dart
+│   ├── utils/
+│   │   ├── date_utils.dart
+│   │   ├── validators.dart
+│   │   └── extensions.dart
+│   └── widgets/
+│       ├── custom_button.dart
+│       ├── custom_text_field.dart
+│       ├── loading_widget.dart
+│       └── error_widget.dart
+├── features/
+│   ├── auth/
+│   │   ├── data/
+│   │   │   ├── datasources/
+│   │   │   │   ├── auth_local_datasource.dart
+│   │   │   │   └── auth_remote_datasource.dart
+│   │   │   ├── models/
+│   │   │   │   ├── user_model.dart
+│   │   │   │   └── login_response_model.dart
+│   │   │   └── repositories/
+│   │   │       └── auth_repository_impl.dart
+│   │   ├── domain/
+│   │   │   ├── entities/
+│   │   │   │   └── user.dart
+│   │   │   ├── repositories/
+│   │   │   │   └── auth_repository.dart
+│   │   │   └── usecases/
+│   │   │       ├── login_usecase.dart
+│   │   │       ├── logout_usecase.dart
+│   │   │       └── register_usecase.dart
+│   │   └── presentation/
+│   │       ├── pages/
+│   │       │   ├── login_page.dart
+│   │       │   ├── register_page.dart
+│   │       │   └── splash_page.dart
+│   │       ├── providers/
+│   │       │   └── auth_provider.dart
+│   │       └── widgets/
+│   │           ├── login_form.dart
+│   │           └── register_form.dart
+│   ├── dashboard/
+│   │   ├── data/
+│   │   │   ├── datasources/
+│   │   │   ├── models/
+│   │   │   └── repositories/
+│   │   ├── domain/
+│   │   │   ├── entities/
+│   │   │   ├── repositories/
+│   │   │   └── usecases/
+│   │   └── presentation/
+│   │       ├── pages/
+│   │       │   └── dashboard_page.dart
+│   │       ├── providers/
+│   │       └── widgets/
+│   │           ├── project_card.dart
+│   │           ├── stats_widget.dart
+│   │           └── recent_activities.dart
+│   ├── projects/
+│   │   ├── data/
+│   │   │   ├── datasources/
+│   │   │   ├── models/
+│   │   │   │   └── project_model.dart
+│   │   │   └── repositories/
+│   │   ├── domain/
+│   │   │   ├── entities/
+│   │   │   │   └── project.dart
+│   │   │   ├── repositories/
+│   │   │   └── usecases/
+│   │   └── presentation/
+│   │       ├── pages/
+│   │       │   ├── projects_list_page.dart
+│   │       │   ├── project_detail_page.dart
+│   │       │   └── create_project_page.dart
+│   │       ├── providers/
+│   │       └── widgets/
+│   │           ├── project_list_item.dart
+│   │           └── project_form.dart
+│   ├── tasks/
+│   │   ├── data/
+│   │   │   ├── datasources/
+│   │   │   ├── models/
+│   │   │   │   └── task_model.dart
+│   │   │   └── repositories/
+│   │   ├── domain/
+│   │   │   ├── entities/
+│   │   │   │   └── task.dart
+│   │   │   ├── repositories/
+│   │   │   └── usecases/
+│   │   └── presentation/
+│   │       ├── pages/
+│   │       │   ├── kanban_board_page.dart
+│   │       │   ├── task_detail_page.dart
+│   │       │   └── create_task_page.dart
+│   │       ├── providers/
+│   │       └── widgets/
+│   │           ├── kanban_column.dart
+│   │           ├── task_card.dart
+│   │           └── task_form.dart
+│   └── profile/
+│       ├── data/
+│       ├── domain/
+│       └── presentation/
+│           ├── pages/
+│           │   └── profile_page.dart
+│           ├── providers/
+│           └── widgets/
+├── shared/
+│   ├── models/
+│   │   ├── api_response.dart
+│   │   └── pagination.dart
+│   ├── services/
+│   │   ├── storage_service.dart
+│   │   ├── notification_service.dart
+│   │   └── file_service.dart
+│   └── widgets/
+│       ├── bottom_navigation.dart
+│       ├── app_bar.dart
+│       └── drawer.dart
+├── app.dart
+└── main.dart
+
