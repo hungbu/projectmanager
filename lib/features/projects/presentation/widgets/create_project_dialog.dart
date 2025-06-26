@@ -61,127 +61,164 @@ class _CreateProjectDialogState extends ConsumerState<CreateProjectDialog> {
     
     return AlertDialog(
       title: Text(isEditing ? 'Edit Project' : 'Create New Project'),
-      content: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Project Name',
-                  hintText: 'Enter project name',
-                ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please enter a project name';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _descriptionController,
-                decoration: const InputDecoration(
-                  labelText: 'Description',
-                  hintText: 'Enter project description',
-                ),
-                maxLines: 3,
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please enter a description';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<ProjectStatus>(
-                value: _selectedStatus,
-                decoration: const InputDecoration(
-                  labelText: 'Status',
-                ),
-                items: ProjectStatus.values.map((status) {
-                  return DropdownMenuItem(
-                    value: status,
-                    child: Text(status.displayName),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() {
-                      _selectedStatus = value;
-                    });
-                  }
-                },
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: ListTile(
-                      title: const Text('Start Date'),
-                      subtitle: Text(
-                        _startDate != null 
-                            ? DateFormat('MMM dd, yyyy').format(_startDate!)
-                            : 'Not set',
-                      ),
-                      trailing: const Icon(Icons.calendar_today),
-                      onTap: () => _selectDate(true),
-                    ),
+      content: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.8,
+          maxWidth: MediaQuery.of(context).size.width * 0.9,
+        ),
+        child: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: _nameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Project Name',
+                    hintText: 'Enter project name',
                   ),
-                  Expanded(
-                    child: ListTile(
-                      title: const Text('End Date'),
-                      subtitle: Text(
-                        _endDate != null 
-                            ? DateFormat('MMM dd, yyyy').format(_endDate!)
-                            : 'Not set',
-                      ),
-                      trailing: const Icon(Icons.calendar_today),
-                      onTap: () => _selectDate(false),
-                    ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Please enter a project name';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _descriptionController,
+                  decoration: const InputDecoration(
+                    labelText: 'Description',
+                    hintText: 'Enter project description',
                   ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              const Text('Project Color'),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                children: _colorOptions.map((color) {
-                  final isSelected = _selectedColor == color;
-                  return GestureDetector(
-                    onTap: () {
+                  maxLines: 3,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Please enter a description';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                DropdownButtonFormField<ProjectStatus>(
+                  value: _selectedStatus,
+                  decoration: const InputDecoration(
+                    labelText: 'Status',
+                  ),
+                  items: ProjectStatus.values.map((status) {
+                    return DropdownMenuItem(
+                      value: status,
+                      child: Text(status.displayName),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    if (value != null) {
                       setState(() {
-                        _selectedColor = color;
+                        _selectedStatus = value;
                       });
-                    },
-                    child: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: _parseColor(color),
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: isSelected 
-                              ? Theme.of(context).colorScheme.primary 
-                              : Colors.transparent,
-                          width: 3,
+                    }
+                  },
+                ),
+                const SizedBox(height: 16),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    if (constraints.maxWidth > 400) {
+                      return Row(
+                        children: [
+                          Expanded(
+                            child: ListTile(
+                              title: const Text('Start Date'),
+                              subtitle: Text(
+                                _startDate != null 
+                                    ? DateFormat('MMM dd, yyyy').format(_startDate!)
+                                    : 'Not set',
+                              ),
+                              trailing: const Icon(Icons.calendar_today),
+                              onTap: () => _selectDate(true),
+                            ),
+                          ),
+                          Expanded(
+                            child: ListTile(
+                              title: const Text('End Date'),
+                              subtitle: Text(
+                                _endDate != null 
+                                    ? DateFormat('MMM dd, yyyy').format(_endDate!)
+                                    : 'Not set',
+                              ),
+                              trailing: const Icon(Icons.calendar_today),
+                              onTap: () => _selectDate(false),
+                            ),
+                          ),
+                        ],
+                      );
+                    } else {
+                      return Column(
+                        children: [
+                          ListTile(
+                            title: const Text('Start Date'),
+                            subtitle: Text(
+                              _startDate != null 
+                                  ? DateFormat('MMM dd, yyyy').format(_startDate!)
+                                  : 'Not set',
+                            ),
+                            trailing: const Icon(Icons.calendar_today),
+                            onTap: () => _selectDate(true),
+                          ),
+                          ListTile(
+                            title: const Text('End Date'),
+                            subtitle: Text(
+                              _endDate != null 
+                                  ? DateFormat('MMM dd, yyyy').format(_endDate!)
+                                  : 'Not set',
+                            ),
+                            trailing: const Icon(Icons.calendar_today),
+                            onTap: () => _selectDate(false),
+                          ),
+                        ],
+                      );
+                    }
+                  },
+                ),
+                const SizedBox(height: 16),
+                const Text('Project Color'),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  children: _colorOptions.map((color) {
+                    final isSelected = _selectedColor == color;
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _selectedColor = color;
+                        });
+                      },
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: _parseColor(color),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: isSelected 
+                                ? Theme.of(context).colorScheme.primary 
+                                : Colors.transparent,
+                            width: 3,
+                          ),
                         ),
+                        child: isSelected
+                            ? Icon(
+                                Icons.check,
+                                color: Colors.white,
+                                size: 20,
+                              )
+                            : null,
                       ),
-                      child: isSelected
-                          ? Icon(
-                              Icons.check,
-                              color: Colors.white,
-                              size: 20,
-                            )
-                          : null,
-                    ),
-                  );
-                }).toList(),
-              ),
-            ],
+                    );
+                  }).toList(),
+                ),
+              ],
+            ),
           ),
         ),
       ),

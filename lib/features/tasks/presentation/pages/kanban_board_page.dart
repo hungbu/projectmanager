@@ -43,62 +43,87 @@ class _KanbanBoardPageState extends ConsumerState<KanbanBoardPage> {
   }
 
   Widget _buildKanbanBoard(Map<TaskStatus, List<Task>> boardData) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: TaskStatus.values.map((status) {
-          final tasks = boardData[status] ?? [];
-          return _buildStatusColumn(status, tasks);
-        }).toList(),
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: SizedBox(
+            height: constraints.maxHeight,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: TaskStatus.values.map((status) {
+                final tasks = boardData[status] ?? [];
+                return _buildStatusColumn(status, tasks, constraints.maxHeight);
+              }).toList(),
+            ),
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildStatusColumn(TaskStatus status, List<Task> tasks) {
-    return Container(
-      width: 300,
-      margin: const EdgeInsets.all(8.0),
-      child: Column(
-        children: [
-          _buildColumnHeader(status, tasks.length),
-          const SizedBox(height: 8),
-          Container(
-            constraints: const BoxConstraints(
-              minHeight: 400,
-              maxHeight: 600,
-            ),
-            child: DragTarget<Task>(
-              onWillAccept: (task) => task != null && task.status != status,
-              onAccept: (task) => _updateTaskStatus(task, status),
-              builder: (context, candidateData, rejectedData) {
-                return Container(
-                  decoration: BoxDecoration(
-                    color: candidateData.isNotEmpty
-                        ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
-                        : Theme.of(context).colorScheme.surface,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: candidateData.isNotEmpty
-                          ? Theme.of(context).colorScheme.primary
-                          : Theme.of(context).colorScheme.outline.withOpacity(0.2),
-                    ),
-                  ),
-                  child: tasks.isEmpty
-                      ? _buildEmptyColumn(status)
-                      : ListView.builder(
-                          padding: const EdgeInsets.all(8.0),
-                          itemCount: tasks.length,
-                          itemBuilder: (context, index) {
-                            final task = tasks[index];
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 8.0),
-                              child: Draggable<Task>(
-                                data: task,
-                                feedback: Material(
-                                  elevation: 8,
-                                  child: SizedBox(
-                                    width: 280,
+  Widget _buildStatusColumn(TaskStatus status, List<Task> tasks, double maxHeight) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final columnWidth = constraints.maxWidth > 600 ? 300.0 : 280.0;
+        
+        return Container(
+          width: columnWidth,
+          height: maxHeight,
+          margin: const EdgeInsets.all(8.0),
+          child: Column(
+            children: [
+              _buildColumnHeader(status, tasks.length),
+              const SizedBox(height: 8),
+              Expanded(
+                child: DragTarget<Task>(
+                  onWillAccept: (task) => task != null && task.status != status,
+                  onAccept: (task) => _updateTaskStatus(task, status),
+                  builder: (context, candidateData, rejectedData) {
+                    return Container(
+                      decoration: BoxDecoration(
+                        color: candidateData.isNotEmpty
+                            ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
+                            : Theme.of(context).colorScheme.surface,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: candidateData.isNotEmpty
+                              ? Theme.of(context).colorScheme.primary
+                              : Theme.of(context).colorScheme.outline.withOpacity(0.2),
+                        ),
+                      ),
+                      child: tasks.isEmpty
+                          ? _buildEmptyColumn(status)
+                          : ListView.builder(
+                              padding: const EdgeInsets.all(8.0),
+                              itemCount: tasks.length,
+                              itemBuilder: (context, index) {
+                                final task = tasks[index];
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 8.0),
+                                  child: Draggable<Task>(
+                                    data: task,
+                                    feedback: Material(
+                                      elevation: 8,
+                                      child: SizedBox(
+                                        width: columnWidth - 20,
+                                        child: TaskCard(
+                                          task: task,
+                                          onTap: () => _navigateToTaskDetail(task),
+                                          onEdit: () => _showEditTaskDialog(context, task),
+                                          onDelete: () => _showDeleteConfirmation(task),
+                                        ),
+                                      ),
+                                    ),
+                                    childWhenDragging: Opacity(
+                                      opacity: 0.5,
+                                      child: TaskCard(
+                                        task: task,
+                                        onTap: () => _navigateToTaskDetail(task),
+                                        onEdit: () => _showEditTaskDialog(context, task),
+                                        onDelete: () => _showDeleteConfirmation(task),
+                                      ),
+                                    ),
                                     child: TaskCard(
                                       task: task,
                                       onTap: () => _navigateToTaskDetail(task),
@@ -106,32 +131,17 @@ class _KanbanBoardPageState extends ConsumerState<KanbanBoardPage> {
                                       onDelete: () => _showDeleteConfirmation(task),
                                     ),
                                   ),
-                                ),
-                                childWhenDragging: Opacity(
-                                  opacity: 0.5,
-                                  child: TaskCard(
-                                    task: task,
-                                    onTap: () => _navigateToTaskDetail(task),
-                                    onEdit: () => _showEditTaskDialog(context, task),
-                                    onDelete: () => _showDeleteConfirmation(task),
-                                  ),
-                                ),
-                                child: TaskCard(
-                                  task: task,
-                                  onTap: () => _navigateToTaskDetail(task),
-                                  onEdit: () => _showEditTaskDialog(context, task),
-                                  onDelete: () => _showDeleteConfirmation(task),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                );
-              },
-            ),
+                                );
+                              },
+                            ),
+                    );
+                  },
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 

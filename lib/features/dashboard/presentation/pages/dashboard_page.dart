@@ -84,50 +84,96 @@ class DashboardPage extends ConsumerWidget {
     AsyncValue<List<Project>> projectsAsync,
     AsyncValue<List<Task>> tasksAsync,
   ) {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildStatCard(
-            context,
-            'Total Projects',
-            projectsAsync.when(
-              data: (projects) => projects.length.toString(),
-              loading: () => '...',
-              error: (_, __) => '0',
-            ),
-            Icons.folder,
-            Colors.blue,
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: _buildStatCard(
-            context,
-            'Active Tasks',
-            tasksAsync.when(
-              data: (tasks) => tasks.where((task) => !task.isCompleted).length.toString(),
-              loading: () => '...',
-              error: (_, __) => '0',
-            ),
-            Icons.task,
-            Colors.orange,
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: _buildStatCard(
-            context,
-            'Completed',
-            tasksAsync.when(
-              data: (tasks) => tasks.where((task) => task.isCompleted).length.toString(),
-              loading: () => '...',
-              error: (_, __) => '0',
-            ),
-            Icons.check_circle,
-            Colors.green,
-          ),
-        ),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth > 600) {
+          return Row(
+            children: [
+              Expanded(
+                child: _buildStatCard(
+                  context,
+                  'Total Projects',
+                  projectsAsync.when(
+                    data: (projects) => projects.length.toString(),
+                    loading: () => '...',
+                    error: (_, __) => '0',
+                  ),
+                  Icons.folder,
+                  Colors.blue,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: _buildStatCard(
+                  context,
+                  'Active Tasks',
+                  tasksAsync.when(
+                    data: (tasks) => tasks.where((task) => !task.isCompleted).length.toString(),
+                    loading: () => '...',
+                    error: (_, __) => '0',
+                  ),
+                  Icons.task,
+                  Colors.orange,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: _buildStatCard(
+                  context,
+                  'Completed',
+                  tasksAsync.when(
+                    data: (tasks) => tasks.where((task) => task.isCompleted).length.toString(),
+                    loading: () => '...',
+                    error: (_, __) => '0',
+                  ),
+                  Icons.check_circle,
+                  Colors.green,
+                ),
+              ),
+            ],
+          );
+        } else {
+          return Column(
+            children: [
+              _buildStatCard(
+                context,
+                'Total Projects',
+                projectsAsync.when(
+                  data: (projects) => projects.length.toString(),
+                  loading: () => '...',
+                  error: (_, __) => '0',
+                ),
+                Icons.folder,
+                Colors.blue,
+              ),
+              const SizedBox(height: 16),
+              _buildStatCard(
+                context,
+                'Active Tasks',
+                tasksAsync.when(
+                  data: (tasks) => tasks.where((task) => !task.isCompleted).length.toString(),
+                  loading: () => '...',
+                  error: (_, __) => '0',
+                ),
+                Icons.task,
+                Colors.orange,
+              ),
+              const SizedBox(height: 16),
+              _buildStatCard(
+                context,
+                'Completed',
+                tasksAsync.when(
+                  data: (tasks) => tasks.where((task) => task.isCompleted).length.toString(),
+                  loading: () => '...',
+                  error: (_, __) => '0',
+                ),
+                Icons.check_circle,
+                Colors.green,
+              ),
+            ],
+          );
+        }
+      },
     );
   }
 

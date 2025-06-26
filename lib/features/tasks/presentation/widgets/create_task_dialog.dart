@@ -65,123 +65,170 @@ class _CreateTaskDialogState extends ConsumerState<CreateTaskDialog> {
     
     return AlertDialog(
       title: Text(isEditing ? 'Edit Task' : 'Create New Task'),
-      content: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextFormField(
-                controller: _titleController,
-                decoration: const InputDecoration(
-                  labelText: 'Task Title',
-                  hintText: 'Enter task title',
+      content: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.8,
+          maxWidth: MediaQuery.of(context).size.width * 0.9,
+        ),
+        child: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: _titleController,
+                  decoration: const InputDecoration(
+                    labelText: 'Task Title',
+                    hintText: 'Enter task title',
+                  ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Please enter a task title';
+                    }
+                    return null;
+                  },
                 ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please enter a task title';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _descriptionController,
-                decoration: const InputDecoration(
-                  labelText: 'Description',
-                  hintText: 'Enter task description',
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _descriptionController,
+                  decoration: const InputDecoration(
+                    labelText: 'Description',
+                    hintText: 'Enter task description',
+                  ),
+                  maxLines: 3,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Please enter a description';
+                    }
+                    return null;
+                  },
                 ),
-                maxLines: 3,
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please enter a description';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: DropdownButtonFormField<TaskPriority>(
-                      value: _selectedPriority,
-                      decoration: const InputDecoration(
-                        labelText: 'Priority',
-                      ),
-                      items: TaskPriority.values.map((priority) {
-                        return DropdownMenuItem(
-                          value: priority,
-                          child: Text(priority.displayName),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        if (value != null) {
-                          setState(() {
-                            _selectedPriority = value;
-                          });
-                        }
-                      },
+                const SizedBox(height: 16),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    if (constraints.maxWidth > 400) {
+                      return Row(
+                        children: [
+                          Expanded(
+                            child: DropdownButtonFormField<TaskPriority>(
+                              value: _selectedPriority,
+                              decoration: const InputDecoration(
+                                labelText: 'Priority',
+                              ),
+                              items: TaskPriority.values.map((priority) {
+                                return DropdownMenuItem(
+                                  value: priority,
+                                  child: Text(priority.displayName),
+                                );
+                              }).toList(),
+                              onChanged: (value) {
+                                if (value != null) {
+                                  setState(() {
+                                    _selectedPriority = value;
+                                  });
+                                }
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: TextFormField(
+                              decoration: const InputDecoration(
+                                labelText: 'Est. Hours',
+                                hintText: '0',
+                              ),
+                              keyboardType: TextInputType.number,
+                              onChanged: (value) {
+                                _estimatedHours = int.tryParse(value);
+                              },
+                            ),
+                          ),
+                        ],
+                      );
+                    } else {
+                      return Column(
+                        children: [
+                          DropdownButtonFormField<TaskPriority>(
+                            value: _selectedPriority,
+                            decoration: const InputDecoration(
+                              labelText: 'Priority',
+                            ),
+                            items: TaskPriority.values.map((priority) {
+                              return DropdownMenuItem(
+                                value: priority,
+                                child: Text(priority.displayName),
+                              );
+                            }).toList(),
+                            onChanged: (value) {
+                              if (value != null) {
+                                setState(() {
+                                  _selectedPriority = value;
+                                });
+                              }
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            decoration: const InputDecoration(
+                              labelText: 'Est. Hours',
+                              hintText: '0',
+                            ),
+                            keyboardType: TextInputType.number,
+                            onChanged: (value) {
+                              _estimatedHours = int.tryParse(value);
+                            },
+                          ),
+                        ],
+                      );
+                    }
+                  },
+                ),
+                const SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  value: _assigneeId,
+                  decoration: const InputDecoration(
+                    labelText: 'Assignee',
+                  ),
+                  items: [
+                    const DropdownMenuItem(
+                      value: null,
+                      child: Text('Unassigned'),
                     ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: TextFormField(
-                      decoration: const InputDecoration(
-                        labelText: 'Est. Hours',
-                        hintText: '0',
-                      ),
-                      keyboardType: TextInputType.number,
-                      onChanged: (value) {
-                        _estimatedHours = int.tryParse(value);
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                value: _assigneeId,
-                decoration: const InputDecoration(
-                  labelText: 'Assignee',
+                    ..._availableAssignees.map((assignee) {
+                      return DropdownMenuItem(
+                        value: assignee,
+                        child: Text(assignee.replaceAll('_', ' ').toTitleCase()),
+                      );
+                    }).toList(),
+                  ],
+                  onChanged: (value) {
+                    setState(() {
+                      _assigneeId = value;
+                    });
+                  },
                 ),
-                items: [
-                  const DropdownMenuItem(
-                    value: null,
-                    child: Text('Unassigned'),
+                const SizedBox(height: 16),
+                ListTile(
+                  title: const Text('Due Date'),
+                  subtitle: Text(
+                    _dueDate != null 
+                        ? DateFormat('MMM dd, yyyy').format(_dueDate!)
+                        : 'Not set',
                   ),
-                  ..._availableAssignees.map((assignee) {
-                    return DropdownMenuItem(
-                      value: assignee,
-                      child: Text(assignee.replaceAll('_', ' ').toTitleCase()),
-                    );
-                  }).toList(),
-                ],
-                onChanged: (value) {
-                  setState(() {
-                    _assigneeId = value;
-                  });
-                },
-              ),
-              const SizedBox(height: 16),
-              ListTile(
-                title: const Text('Due Date'),
-                subtitle: Text(
-                  _dueDate != null 
-                      ? DateFormat('MMM dd, yyyy').format(_dueDate!)
-                      : 'Not set',
+                  trailing: const Icon(Icons.calendar_today),
+                  onTap: () => _selectDueDate(),
                 ),
-                trailing: const Icon(Icons.calendar_today),
-                onTap: () => _selectDueDate(),
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _tagsController,
-                decoration: const InputDecoration(
-                  labelText: 'Tags',
-                  hintText: 'Enter tags separated by commas',
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _tagsController,
+                  decoration: const InputDecoration(
+                    labelText: 'Tags',
+                    hintText: 'Enter tags separated by commas',
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
