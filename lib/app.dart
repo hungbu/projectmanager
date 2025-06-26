@@ -12,6 +12,7 @@ import 'features/auth/presentation/pages/splash_page.dart';
 import 'features/dashboard/presentation/pages/dashboard_page.dart';
 import 'features/projects/presentation/pages/projects_list_page.dart';
 import 'features/tasks/presentation/pages/kanban_board_page.dart';
+import 'features/tasks/presentation/pages/task_detail_page.dart';
 import 'shared/widgets/bottom_navigation.dart';
 
 class ProjectManagerApp extends ConsumerWidget {
@@ -257,8 +258,22 @@ class ProjectManagerApp extends ConsumerWidget {
               builder: (context, state) => const ProjectsListPage(),
             ),
             GoRoute(
+              path: '/projects/:projectId',
+              builder: (context, state) {
+                final projectId = state.pathParameters['projectId']!;
+                return KanbanBoardPage(projectId: projectId);
+              },
+            ),
+            GoRoute(
               path: '/tasks',
-              builder: (context, state) => const KanbanBoardPage(),
+              builder: (context, state) => const KanbanBoardPage(projectId: 'default'),
+            ),
+            GoRoute(
+              path: '/tasks/:taskId',
+              builder: (context, state) {
+                final taskId = state.pathParameters['taskId']!;
+                return TaskDetailPage(taskId: taskId);
+              },
             ),
           ],
         ),
