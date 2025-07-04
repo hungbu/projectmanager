@@ -21,6 +21,21 @@ class AuthService {
     return userData != null && authToken != null;
   }
 
+  // Get current user from server (getme endpoint)
+  static Future<User?> getMe() async {
+    try {
+      final response = await ApiService.get(ApiEndpoints.user);
+      final user = User.fromJson(response);
+      await _saveUserData(user);
+      _currentUser = user;
+      return user;
+    } catch (e) {
+      // If the request fails (401, network error, etc.), clear stored data
+      await clearUserData();
+      return null;
+    }
+  }
+
   // Initialize auth service
   static Future<void> initialize() async {
     await ApiService.initialize();
@@ -32,20 +47,20 @@ class AuthService {
     
     if (userData != null && authToken != null) {
       try {
-        // Validate session with server
-        final user = await getCurrentUser();
+        // Validate session with server using getme endpoint
+        final user = await getMe();
         if (user != null) {
           _currentUser = user;
-          print('✅ Session validated successfully');
+          print('✅ Session validated successfully via getme endpoint');
         } else {
           // Session is invalid, clear data
           await clearUserData();
-          print('❌ Session validation failed, cleared data');
+          print('❌ Session validation failed via getme endpoint, cleared data');
         }
       } catch (e) {
         // Session validation failed, clear data
         await clearUserData();
-        print('❌ Session validation error: $e');
+        print('❌ Session validation error via getme endpoint: $e');
       }
     } else {
       print('ℹ️ No stored session found');

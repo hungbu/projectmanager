@@ -21,7 +21,6 @@ class _SplashPageState extends ConsumerState<SplashPage>
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
-  bool _hasStoredSession = false;
 
   @override
   void initState() {
@@ -54,10 +53,21 @@ class _SplashPageState extends ConsumerState<SplashPage>
   }
   
   Future<void> _checkStoredSession() async {
-    final hasSession = await AuthService.hasStoredSession();
-    setState(() {
-      _hasStoredSession = hasSession;
-    });
+    try {
+      // Use getme endpoint to validate session
+      final user = await AuthService.getMe();
+      
+      // If user is valid, navigate to dashboard
+      if (user != null) {
+        print('✅ User authenticated via getMe, navigating to dashboard');
+        context.go('/dashboard');
+      } else {
+        print('❌ No valid session, navigating to login');
+        context.go('/login');
+      }
+    } catch (e) {
+      print('❌ Error checking session: $e');
+    }
   }
 
   @override
@@ -69,6 +79,8 @@ class _SplashPageState extends ConsumerState<SplashPage>
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authStateProvider);
+    final screenSize = MediaQuery.of(context).size;
+    final isDesktop = screenSize.width > 600;
     
     // Handle auth state changes
     ref.listen(authStateProvider, (previous, next) {
@@ -85,100 +97,121 @@ class _SplashPageState extends ConsumerState<SplashPage>
     });
 
     return Scaffold(
-      backgroundColor: AppColors.primary,
+      backgroundColor: AppColors.background,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(AppSizes.xl),
-          child: Column(
-            children: [
-              const Spacer(),
-              FadeTransition(
-                opacity: _fadeAnimation,
-                child: SlideTransition(
-                  position: _slideAnimation,
-                  child: Column(
-                    children: [
-                      // App Logo
-                      Container(
-                        width: 120,
-                        height: 120,
-                        decoration: BoxDecoration(
-                          color: AppColors.textInverse,
-                          borderRadius: BorderRadius.circular(AppSizes.radiusXl),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.shadow,
-                              blurRadius: AppSizes.shadowBlurRadius,
-                              offset: const Offset(0, 8),
+        child: Center(
+          child: SingleChildScrollView(
+            padding: EdgeInsets.all(isDesktop ? AppSizes.xl : AppSizes.lg),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 350),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: SlideTransition(
+                      position: _slideAnimation,
+                      child: Column(
+                        children: [
+                          // App Logo
+                          Container(
+                            width: 120,
+                            height: 120,
+                            decoration: BoxDecoration(
+                              color: AppColors.primary,
+                              borderRadius: BorderRadius.circular(AppSizes.radiusXl),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.shadow,
+                                  blurRadius: AppSizes.shadowBlurRadius,
+                                  offset: const Offset(0, 8),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                        child: const Icon(
-                          Icons.work_outline,
-                          size: 60,
-                          color: AppColors.primary,
-                        ),
+                            child: const Icon(
+                              Icons.work_outline,
+                              size: 60,
+                              color: AppColors.textInverse,
+                            ),
+                          ),
+                          const SizedBox(height: AppSizes.xl),
+                          
+                          // App Name
+                          Text(
+                            AppStrings.appName,
+                            style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                              color: AppColors.textPrimary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: AppSizes.sm),
+                          
+                          // App Description
+                          Text(
+                            AppStrings.appDescription,
+                            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: AppSizes.xl),
-                      
-                      // App Name
-                      Text(
-                        AppStrings.appName,
-                        style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                          color: AppColors.textInverse,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: AppSizes.sm),
-                      
-                      // App Description
-                      Text(
-                        AppStrings.appDescription,
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: AppColors.textInverse.withOpacity(0.8),
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
+                    ),
                   ),
-                ),
-              ),
-              const Spacer(),
-              
-              // Loading Indicator
-              FadeTransition(
-                opacity: _fadeAnimation,
-                child: Column(
-                  children: [
-                    const CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.textInverse),
-                      strokeWidth: 3,
-                    ),
-                    const SizedBox(height: AppSizes.md),
-                    Text(
-                      _hasStoredSession 
-                        ? 'Validating session...' 
-                        : 'Loading...',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.textInverse.withOpacity(0.8),
+                  
+                  const SizedBox(height: AppSizes.xxl),
+                  
+                  // Loading Indicator Card
+                  FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: Container(
+                      padding: const EdgeInsets.all(AppSizes.xl),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(AppSizes.radiusLg),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.shadow,
+                            blurRadius: AppSizes.shadowBlurRadius,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          const CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                            strokeWidth: 3,
+                          ),
+                          const SizedBox(height: AppSizes.md),
+                          Text(
+                            'Validating session via API...',
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                  
+                  const SizedBox(height: AppSizes.xl),
+                  
+                  // Skip Button
+                  FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: CustomButton(
+                      text: 'Bỏ qua',
+                      variant: ButtonVariant.text,
+                      onPressed: () => context.go('/login'),
+                      textColor: AppColors.primary,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: AppSizes.xl),
-              
-              // Skip Button
-              FadeTransition(
-                opacity: _fadeAnimation,
-                child: CustomButton(
-                  text: 'Bỏ qua',
-                  variant: ButtonVariant.text,
-                  onPressed: () => context.go('/login'),
-                  textColor: AppColors.textInverse,
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),

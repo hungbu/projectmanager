@@ -71,6 +71,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authStateProvider);
+    final screenSize = MediaQuery.of(context).size;
+    final isDesktop = screenSize.width > 600;
     
     // Handle auth state changes
     ref.listen(authStateProvider, (previous, next) {
@@ -91,191 +93,254 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     });
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(AppSizes.xl),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: AppSizes.xxl),
-                
-                // Header
-                Column(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: EdgeInsets.all(isDesktop ? AppSizes.xl : AppSizes.lg),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 350),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        color: AppColors.primary,
-                        borderRadius: BorderRadius.circular(AppSizes.radiusLg),
-                      ),
-                      child: const Icon(
-                        Icons.work_outline,
-                        size: 40,
-                        color: AppColors.textInverse,
-                      ),
-                    ),
-                    const SizedBox(height: AppSizes.lg),
-                    Text(
-                      AppStrings.welcomeBack,
-                      style: Theme.of(context).textTheme.headlineMedium,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: AppSizes.sm),
-                    Text(
-                      'Đăng nhập để tiếp tục',
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-                
-                const SizedBox(height: AppSizes.xxl),
-                
-                // Email Field
-                TextFormField(
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  validator: _validateEmail,
-                  decoration: const InputDecoration(
-                    labelText: AppStrings.email,
-                    prefixIcon: Icon(Icons.email_outlined),
-                  ),
-                ),
-                
-                const SizedBox(height: AppSizes.lg),
-                
-                // Password Field
-                TextFormField(
-                  controller: _passwordController,
-                  obscureText: !_isPasswordVisible,
-                  validator: _validatePassword,
-                  decoration: InputDecoration(
-                    labelText: AppStrings.password,
-                    prefixIcon: const Icon(Icons.lock_outlined),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _isPasswordVisible
-                            ? Icons.visibility_off
-                            : Icons.visibility,
-                      ),
-                      onPressed: _togglePasswordVisibility,
-                    ),
-                  ),
-                ),
-                
-                const SizedBox(height: AppSizes.md),
-                
-                // Remember Me & Forgot Password
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
+                    // Header
+                    Column(
                       children: [
-                        Checkbox(
-                          value: _rememberMe,
-                          onChanged: (value) => _toggleRememberMe(),
-                          activeColor: AppColors.primary,
+                        Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            borderRadius: BorderRadius.circular(AppSizes.radiusLg),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.shadow,
+                                blurRadius: AppSizes.shadowBlurRadius,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: const Icon(
+                            Icons.work_outline,
+                            size: 40,
+                            color: AppColors.textInverse,
+                          ),
                         ),
+                        const SizedBox(height: AppSizes.lg),
                         Text(
-                          'Ghi nhớ đăng nhập',
-                          style: Theme.of(context).textTheme.bodyMedium,
+                          AppStrings.welcomeBack,
+                          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: AppSizes.sm),
+                        Text(
+                          'Đăng nhập để tiếp tục',
+                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
                       ],
                     ),
-                    TextButton(
-                      onPressed: () {
-                        // TODO: Navigate to forgot password
-                      },
-                      child: Text(AppStrings.forgotPassword),
-                    ),
-                  ],
-                ),
-                
-                const SizedBox(height: AppSizes.xl),
-                
-                // Login Button
-                CustomButton(
-                  text: AppStrings.login,
-                  onPressed: _handleLogin,
-                  isLoading: authState.isLoading,
-                  isFullWidth: true,
-                  icon: Icons.login,
-                ),
-                
-                const SizedBox(height: AppSizes.lg),
-                
-                // Divider
-                Row(
-                  children: [
-                    const Expanded(child: Divider()),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: AppSizes.md),
-                      child: Text(
-                        'hoặc',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
+                    
+                    const SizedBox(height: AppSizes.xxl),
+                    
+                    // Login Form Card
+                    Container(
+                      padding: const EdgeInsets.all(AppSizes.xl),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(AppSizes.radiusLg),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.shadow,
+                            blurRadius: AppSizes.shadowBlurRadius,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // Email Field
+                          TextFormField(
+                            controller: _emailController,
+                            keyboardType: TextInputType.emailAddress,
+                            validator: _validateEmail,
+                            decoration: InputDecoration(
+                              labelText: AppStrings.email,
+                              prefixIcon: const Icon(Icons.email_outlined),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(AppSizes.radiusMd),
+                              ),
+                              filled: true,
+                              fillColor: AppColors.background,
+                            ),
+                          ),
+                          
+                          const SizedBox(height: AppSizes.lg),
+                          
+                          // Password Field
+                          TextFormField(
+                            controller: _passwordController,
+                            obscureText: !_isPasswordVisible,
+                            validator: _validatePassword,
+                            decoration: InputDecoration(
+                              labelText: AppStrings.password,
+                              prefixIcon: const Icon(Icons.lock_outlined),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _isPasswordVisible
+                                      ? Icons.visibility_off
+                                      : Icons.visibility,
+                                ),
+                                onPressed: _togglePasswordVisibility,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(AppSizes.radiusMd),
+                              ),
+                              filled: true,
+                              fillColor: AppColors.background,
+                            ),
+                          ),
+                          
+                          const SizedBox(height: AppSizes.md),
+                          
+                          // Remember Me & Forgot Password
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  Checkbox(
+                                    value: _rememberMe,
+                                    onChanged: (value) => _toggleRememberMe(),
+                                    activeColor: AppColors.primary,
+                                  ),
+                                  Text(
+                                    'Ghi nhớ',
+                                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                      color: AppColors.textSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  // TODO: Navigate to forgot password
+                                },
+                                child: Text(
+                                  AppStrings.forgotPassword,
+                                  style: TextStyle(color: AppColors.primary),
+                                ),
+                              ),
+                            ],
+                          ),
+                          
+                          const SizedBox(height: AppSizes.xl),
+                          
+                          // Login Button
+                          CustomButton(
+                            text: AppStrings.login,
+                            onPressed: _handleLogin,
+                            isLoading: authState.isLoading,
+                            isFullWidth: true,
+                            icon: Icons.login,
+                          ),
+                        ],
                       ),
                     ),
-                    const Expanded(child: Divider()),
-                  ],
-                ),
-                
-                const SizedBox(height: AppSizes.lg),
-                
-                // Social Login Buttons
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () {
-                          // TODO: Implement Google login
-                        },
-                        icon: const Icon(Icons.g_mobiledata, size: 24),
-                        label: const Text('Google'),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: AppSizes.md),
+                    
+                    const SizedBox(height: AppSizes.lg),
+                    
+                    // Divider
+                    Row(
+                      children: [
+                        const Expanded(child: Divider()),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: AppSizes.md),
+                          child: Text(
+                            'hoặc',
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
                         ),
-                      ),
+                        const Expanded(child: Divider()),
+                      ],
                     ),
-                    const SizedBox(width: AppSizes.md),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () {
-                          // TODO: Implement Facebook login
-                        },
-                        icon: const Icon(Icons.facebook, size: 24),
-                        label: const Text('Facebook'),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: AppSizes.md),
+                    
+                    const SizedBox(height: AppSizes.lg),
+                    
+                    // Social Login Buttons
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () {
+                              // TODO: Implement Google login
+                            },
+                            icon: const Icon(Icons.g_mobiledata, size: 24),
+                            label: const Text('Google'),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: AppSizes.md),
+                              side: BorderSide(color: AppColors.border),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(AppSizes.radiusMd),
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
+                        const SizedBox(width: AppSizes.md),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () {
+                              // TODO: Implement Facebook login
+                            },
+                            icon: const Icon(Icons.facebook, size: 24),
+                            label: const Text('Facebook'),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: AppSizes.md),
+                              side: BorderSide(color: AppColors.border),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(AppSizes.radiusMd),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    
+                    const SizedBox(height: AppSizes.xl),
+                    
+                    // Register Link
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          AppStrings.dontHaveAccount,
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () => context.go('/register'),
+                          child: Text(
+                            AppStrings.signUp,
+                            style: TextStyle(color: AppColors.primary),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-                
-                const SizedBox(height: AppSizes.xl),
-                
-                // Register Link
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      AppStrings.dontHaveAccount,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                    TextButton(
-                      onPressed: () => context.go('/register'),
-                      child: Text(AppStrings.signUp),
-                    ),
-                  ],
-                ),
-              ],
+              ),
             ),
           ),
         ),

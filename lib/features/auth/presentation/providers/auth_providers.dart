@@ -96,7 +96,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     state = state.copyWith(isLoading: true);
     
     try {
-      final user = await AuthService.getCurrentUser();
+      final user = await AuthService.getMe();
       state = state.copyWith(user: user, isLoading: false);
     } catch (e) {
       state = state.copyWith(error: e.toString(), isLoading: false);
