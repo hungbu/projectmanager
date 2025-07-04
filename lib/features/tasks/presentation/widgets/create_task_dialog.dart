@@ -105,84 +105,40 @@ class _CreateTaskDialogState extends ConsumerState<CreateTaskDialog> {
                   },
                 ),
                 const SizedBox(height: 16),
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    if (constraints.maxWidth > 400) {
-                      return Row(
-                        children: [
-                          Expanded(
-                            child: DropdownButtonFormField<TaskPriority>(
-                              value: _selectedPriority,
-                              decoration: const InputDecoration(
-                                labelText: 'Priority',
-                              ),
-                              items: TaskPriority.values.map((priority) {
-                                return DropdownMenuItem(
-                                  value: priority,
-                                  child: Text(priority.displayName),
-                                );
-                              }).toList(),
-                              onChanged: (value) {
-                                if (value != null) {
-                                  setState(() {
-                                    _selectedPriority = value;
-                                  });
-                                }
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: TextFormField(
-                              decoration: const InputDecoration(
-                                labelText: 'Est. Hours',
-                                hintText: '0',
-                              ),
-                              keyboardType: TextInputType.number,
-                              onChanged: (value) {
-                                _estimatedHours = int.tryParse(value);
-                              },
-                            ),
-                          ),
-                        ],
-                      );
-                    } else {
-                      return Column(
-                        children: [
-                          DropdownButtonFormField<TaskPriority>(
-                            value: _selectedPriority,
-                            decoration: const InputDecoration(
-                              labelText: 'Priority',
-                            ),
-                            items: TaskPriority.values.map((priority) {
-                              return DropdownMenuItem(
-                                value: priority,
-                                child: Text(priority.displayName),
-                              );
-                            }).toList(),
-                            onChanged: (value) {
-                              if (value != null) {
-                                setState(() {
-                                  _selectedPriority = value;
-                                });
-                              }
-                            },
-                          ),
-                          const SizedBox(height: 16),
-                          TextFormField(
-                            decoration: const InputDecoration(
-                              labelText: 'Est. Hours',
-                              hintText: '0',
-                            ),
-                            keyboardType: TextInputType.number,
-                            onChanged: (value) {
-                              _estimatedHours = int.tryParse(value);
-                            },
-                          ),
-                        ],
-                      );
-                    }
-                  },
+                // Priority and Estimated Hours
+                Column(
+                  children: [
+                    DropdownButtonFormField<TaskPriority>(
+                      value: _selectedPriority,
+                      decoration: const InputDecoration(
+                        labelText: 'Priority',
+                      ),
+                      items: TaskPriority.values.map((priority) {
+                        return DropdownMenuItem(
+                          value: priority,
+                          child: Text(priority.displayName),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() {
+                            _selectedPriority = value;
+                          });
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      decoration: const InputDecoration(
+                        labelText: 'Est. Hours',
+                        hintText: '0',
+                      ),
+                      keyboardType: TextInputType.number,
+                      onChanged: (value) {
+                        _estimatedHours = int.tryParse(value);
+                      },
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(

@@ -56,6 +56,20 @@ class _SplashPageState extends ConsumerState<SplashPage>
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authStateProvider);
+    
+    // Handle auth state changes
+    ref.listen(authStateProvider, (previous, next) {
+      if (!next.isLoading) {
+        // Auth state has been determined, let the router handle navigation
+        if (next.user != null) {
+          // User is authenticated, router will redirect to dashboard
+        } else {
+          // User is not authenticated, router will redirect to login
+        }
+      }
+    });
+
     return Scaffold(
       backgroundColor: AppColors.primary,
       body: SafeArea(
