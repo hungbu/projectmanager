@@ -9,6 +9,7 @@ import 'core/constants/app_strings.dart';
 import 'features/auth/presentation/pages/login_page.dart';
 import 'features/auth/presentation/pages/register_page.dart';
 import 'features/auth/presentation/pages/splash_page.dart';
+import 'features/auth/presentation/providers/auth_providers.dart';
 import 'features/dashboard/presentation/pages/dashboard_page.dart';
 import 'features/projects/presentation/pages/projects_list_page.dart';
 import 'features/tasks/presentation/pages/kanban_board_page.dart';
@@ -24,7 +25,7 @@ class ProjectManagerApp extends ConsumerWidget {
       title: AppStrings.appName,
       debugShowCheckedModeBanner: false,
       theme: _buildTheme(),
-      routerConfig: _buildRouter(),
+      routerConfig: _buildRouter(ref),
     );
   }
 
@@ -230,9 +231,39 @@ class ProjectManagerApp extends ConsumerWidget {
     );
   }
 
-  GoRouter _buildRouter() {
+  GoRouter _buildRouter(WidgetRef ref) {
     return GoRouter(
       initialLocation: '/splash',
+      redirect: (context, state) {
+        final authState = ref.read(authStateProvider);
+        
+        // If still loading, stay on splash
+        if (authState.isLoading) {
+          return '/splash';
+        }
+        
+        // If not authenticated and not on auth pages, redirect to login
+        if (authState.user == null) {
+          final isAuthPage = state.matchedLocation == '/login' || 
+                           state.matchedLocation == '/register' ||
+                           state.matchedLocation == '/splash';
+          if (!isAuthPage) {
+            return '/login';
+          }
+        }
+        
+        // If authenticated and on auth pages, redirect to dashboard
+        if (authState.user != null) {
+          final isAuthPage = state.matchedLocation == '/login' || 
+                           state.matchedLocation == '/register' ||
+                           state.matchedLocation == '/splash';
+          if (isAuthPage) {
+            return '/dashboard';
+          }
+        }
+        
+        return null;
+      },
       routes: [
         GoRoute(
           path: '/splash',

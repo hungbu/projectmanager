@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+import '../../../../core/services/api_service.dart';
+import '../../../../core/constants/api_endpoints.dart';
 import '../../domain/entities/project.dart';
 
 class ProjectRepository {
@@ -11,7 +13,131 @@ class ProjectRepository {
     _box = await Hive.openBox<Map>(_boxName);
   }
 
+  // Get all projects from API
   Future<List<Project>> getAllProjects() async {
+    try {
+      final response = await ApiService.get(ApiEndpoints.projects);
+      final List<dynamic> projectsData = response as List<dynamic>;
+      
+      return projectsData.map((data) => _fromApiMap(data as Map<String, dynamic>)).toList();
+    } catch (e) {
+      // Fallback to local storage if API fails
+      return _getAllProjectsFromLocal();
+    }
+  }
+
+  // Get project by ID from API
+  Future<Project?> getProjectById(String id) async {
+    try {
+      final response = await ApiService.get('${ApiEndpoints.projects}/$id');
+      return _fromApiMap(response);
+    } catch (e) {
+      // Fallback to local storage if API fails
+      return _getProjectByIdFromLocal(id);
+    }
+  }
+
+  // Get projects by user ID (filtered on server)
+  Future<List<Project>> getProjectsByUserId(String userId) async {
+    // The API already returns only user's projects, so we can use getAllProjects
+    return getAllProjects();
+  }
+
+  // Create project via API
+  Future<Project> createProject(Project project) async {
+    try {
+      final response = await ApiService.post(
+        ApiEndpoints.projects,
+        _toApiMap(project),
+      );
+      
+      final createdProject = _fromApiMap(response);
+      await _saveProjectToLocal(createdProject);
+      return createdProject;
+    } catch (e) {
+      // If API fails, save to local storage only
+      await _saveProjectToLocal(project);
+      return project;
+    }
+  }
+
+  // Update project via API
+  Future<Project> updateProject(Project project) async {
+    try {
+      final response = await ApiService.put(
+        '${ApiEndpoints.projects}/${project.id}',
+        _toApiMap(project),
+      );
+      
+      final updatedProject = _fromApiMap(response);
+      await _saveProjectToLocal(updatedProject);
+      return updatedProject;
+    } catch (e) {
+      // If API fails, update local storage only
+      await _saveProjectToLocal(project);
+      return project;
+    }
+  }
+
+  // Delete project via API
+  Future<void> deleteProject(String id) async {
+    try {
+      await ApiService.delete('${ApiEndpoints.projects}/$id');
+    } catch (e) {
+      // Continue with local deletion even if API fails
+    }
+    
+    await _deleteProjectFromLocal(id);
+  }
+
+  // Add member to project via API
+  Future<void> addMemberToProject(String projectId, String userId) async {
+    try {
+      await ApiService.post(
+        ApiEndpoints.replacePathParams(ApiEndpoints.addProjectMember, {'id': projectId}),
+        {'user_id': userId},
+      );
+    } catch (e) {
+      // Handle error or fallback to local update
+      final project = await _getProjectByIdFromLocal(projectId);
+      if (project != null) {
+        final updatedMemberIds = List<String>.from(project.memberIds);
+        if (!updatedMemberIds.contains(userId)) {
+          updatedMemberIds.add(userId);
+          final updatedProject = project.copyWith(
+            memberIds: updatedMemberIds,
+            updatedAt: DateTime.now(),
+          );
+          await _saveProjectToLocal(updatedProject);
+        }
+      }
+    }
+  }
+
+  // Remove member from project via API
+  Future<void> removeMemberFromProject(String projectId, String userId) async {
+    try {
+      await ApiService.post(
+        ApiEndpoints.replacePathParams(ApiEndpoints.removeProjectMember, {'id': projectId}),
+        {'user_id': userId},
+      );
+    } catch (e) {
+      // Handle error or fallback to local update
+      final project = await _getProjectByIdFromLocal(projectId);
+      if (project != null) {
+        final updatedMemberIds = List<String>.from(project.memberIds);
+        updatedMemberIds.remove(userId);
+        final updatedProject = project.copyWith(
+          memberIds: updatedMemberIds,
+          updatedAt: DateTime.now(),
+        );
+        await _saveProjectToLocal(updatedProject);
+      }
+    }
+  }
+
+  // Local storage methods (fallback)
+  Future<List<Project>> _getAllProjectsFromLocal() async {
     final projects = <Project>[];
     for (final map in _box.values) {
       projects.add(_fromMap(map));
@@ -19,7 +145,7 @@ class ProjectRepository {
     return projects;
   }
 
-  Future<Project?> getProjectById(String id) async {
+  Future<Project?> _getProjectByIdFromLocal(String id) async {
     final map = _box.get(id);
     if (map != null) {
       return _fromMap(map);
@@ -27,53 +153,51 @@ class ProjectRepository {
     return null;
   }
 
-  Future<List<Project>> getProjectsByUserId(String userId) async {
-    final projects = await getAllProjects();
-    return projects.where((project) => 
-      project.ownerId == userId || project.memberIds.contains(userId)
-    ).toList();
-  }
-
-  Future<void> createProject(Project project) async {
+  Future<void> _saveProjectToLocal(Project project) async {
     await _box.put(project.id, _toMap(project));
   }
 
-  Future<void> updateProject(Project project) async {
-    await _box.put(project.id, _toMap(project));
-  }
-
-  Future<void> deleteProject(String id) async {
+  Future<void> _deleteProjectFromLocal(String id) async {
     await _box.delete(id);
   }
 
-  Future<void> addMemberToProject(String projectId, String userId) async {
-    final project = await getProjectById(projectId);
-    if (project != null) {
-      final updatedMemberIds = List<String>.from(project.memberIds);
-      if (!updatedMemberIds.contains(userId)) {
-        updatedMemberIds.add(userId);
-        final updatedProject = project.copyWith(
-          memberIds: updatedMemberIds,
-          updatedAt: DateTime.now(),
-        );
-        await updateProject(updatedProject);
-      }
-    }
+  // Convert API response to Project entity
+  Project _fromApiMap(Map<String, dynamic> data) {
+    return Project(
+      id: data['id'].toString(),
+      name: data['name'] as String,
+      description: data['description'] as String? ?? '',
+      ownerId: data['owner_id'].toString(),
+      memberIds: [], // API doesn't return member IDs in this implementation
+      createdAt: DateTime.parse(data['created_at']),
+      updatedAt: DateTime.parse(data['updated_at']),
+      status: ProjectStatus.values.firstWhere(
+        (e) => e.name == data['status'],
+        orElse: () => ProjectStatus.active,
+      ),
+      startDate: data['start_date'] != null 
+          ? DateTime.parse(data['start_date'])
+          : null,
+      endDate: data['end_date'] != null 
+          ? DateTime.parse(data['end_date'])
+          : null,
+      color: data['color'] as String?,
+    );
   }
 
-  Future<void> removeMemberFromProject(String projectId, String userId) async {
-    final project = await getProjectById(projectId);
-    if (project != null) {
-      final updatedMemberIds = List<String>.from(project.memberIds);
-      updatedMemberIds.remove(userId);
-      final updatedProject = project.copyWith(
-        memberIds: updatedMemberIds,
-        updatedAt: DateTime.now(),
-      );
-      await updateProject(updatedProject);
-    }
+  // Convert Project entity to API request format
+  Map<String, dynamic> _toApiMap(Project project) {
+    return {
+      'name': project.name,
+      'description': project.description,
+      'status': project.status.name,
+      'start_date': project.startDate?.toIso8601String(),
+      'end_date': project.endDate?.toIso8601String(),
+      'color': project.color,
+    };
   }
 
+  // Local storage conversion methods (for fallback)
   Map<String, dynamic> _toMap(Project project) {
     return {
       'id': project.id,

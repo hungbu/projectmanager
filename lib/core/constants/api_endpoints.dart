@@ -1,11 +1,12 @@
 class ApiEndpoints {
-  // Base URL
-  static const String baseUrl = 'https://api.projectmanager.com/v1';
+  // Base URL - Update this to your Laravel API URL
+  static const String baseUrl = 'http://localhost:8000/api';
   
   // Authentication
-  static const String login = '/auth/login';
-  static const String register = '/auth/register';
-  static const String logout = '/auth/logout';
+  static const String login = '/login';
+  static const String register = '/register';
+  static const String logout = '/logout';
+  static const String user = '/user';
   static const String refreshToken = '/auth/refresh';
   static const String forgotPassword = '/auth/forgot-password';
   static const String resetPassword = '/auth/reset-password';
@@ -22,14 +23,17 @@ class ApiEndpoints {
   static const String projectMembers = '/projects/{id}/members';
   static const String projectStats = '/projects/{id}/stats';
   static const String projectTasks = '/projects/{id}/tasks';
+  static const String addProjectMember = '/projects/{id}/add-member';
+  static const String removeProjectMember = '/projects/{id}/remove-member';
   
   // Tasks
   static const String tasks = '/tasks';
   static const String taskById = '/tasks/{id}';
   static const String taskComments = '/tasks/{id}/comments';
   static const String taskAttachments = '/tasks/{id}/attachments';
-  static const String taskAssignees = '/tasks/{id}/assignees';
   static const String taskStatus = '/tasks/{id}/status';
+  static const String taskAssign = '/tasks/{id}/assign';
+  static const String taskUnassign = '/tasks/{id}/unassign';
   
   // Comments
   static const String comments = '/comments';

@@ -6,6 +6,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/widgets/custom_button.dart';
+import '../providers/auth_providers.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -19,7 +20,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
-  bool _isLoading = false;
   bool _rememberMe = false;
 
   @override
@@ -44,33 +44,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      // TODO: Implement login logic with Riverpod
-      await Future.delayed(const Duration(seconds: 2)); // Simulate API call
-      
-      if (mounted) {
-        context.go('/dashboard');
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Đăng nhập thất bại: ${e.toString()}'),
-            backgroundColor: AppColors.error,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
+    final authNotifier = ref.read(authStateProvider.notifier);
+    await authNotifier.login(_emailController.text, _passwordController.text);
   }
 
   String? _validateEmail(String? value) {
@@ -95,6 +70,26 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authStateProvider);
+    
+    // Handle auth state changes
+    ref.listen(authStateProvider, (previous, next) {
+      if (next.user != null && previous?.user == null) {
+        // User logged in successfully
+        context.go('/dashboard');
+      } else if (next.error != null) {
+        // Show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(next.error!),
+            backgroundColor: AppColors.error,
+          ),
+        );
+        // Clear error after showing
+        ref.read(authStateProvider.notifier).clearError();
+      }
+    });
+
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -207,7 +202,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 CustomButton(
                   text: AppStrings.login,
                   onPressed: _handleLogin,
-                  isLoading: _isLoading,
+                  isLoading: authState.isLoading,
                   isFullWidth: true,
                   icon: Icons.login,
                 ),

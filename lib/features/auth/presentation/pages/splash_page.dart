@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/widgets/custom_button.dart';
+import '../providers/auth_providers.dart';
 
-class SplashPage extends StatefulWidget {
+class SplashPage extends ConsumerStatefulWidget {
   const SplashPage({super.key});
 
   @override
-  State<SplashPage> createState() => _SplashPageState();
+  ConsumerState<SplashPage> createState() => _SplashPageState();
 }
 
-class _SplashPageState extends State<SplashPage>
+class _SplashPageState extends ConsumerState<SplashPage>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -44,13 +46,6 @@ class _SplashPageState extends State<SplashPage>
     ));
 
     _animationController.forward();
-
-    // Navigate to login after animation
-    Future.delayed(const Duration(seconds: 3), () {
-      if (mounted) {
-        context.go('/login');
-      }
-    });
   }
 
   @override
@@ -148,4 +143,4 @@ class _SplashPageState extends State<SplashPage>
       ),
     );
   }
-} 
+}
