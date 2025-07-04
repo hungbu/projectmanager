@@ -121,9 +121,13 @@ class _CreateProjectDialogState extends ConsumerState<CreateProjectDialog> {
                   },
                 ),
                 const SizedBox(height: 16),
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    if (constraints.maxWidth > 400) {
+                // Date selection - responsive layout
+                Builder(
+                  builder: (context) {
+                    final screenWidth = MediaQuery.of(context).size.width;
+                    final isWideScreen = screenWidth > 600;
+                    
+                    if (isWideScreen) {
                       return Row(
                         children: [
                           Expanded(

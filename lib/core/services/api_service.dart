@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../constants/api_endpoints.dart';
+import 'error_handler.dart';
 
 class ApiService {
   static const String _baseUrl = ApiEndpoints.baseUrl;
@@ -12,6 +14,13 @@ class ApiService {
   static Future<void> initialize() async {
     final prefs = await SharedPreferences.getInstance();
     _authToken = prefs.getString('auth_token');
+    
+    // Debug logging
+    if (_authToken != null) {
+      print('🔑 Auth token loaded: ${_authToken!.substring(0, 20)}...');
+    } else {
+      print('⚠️ No auth token found in storage');
+    }
   }
 
   // Save auth token to storage
@@ -19,6 +28,9 @@ class ApiService {
     _authToken = token;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('auth_token', token);
+    
+    // Debug logging
+    print('🔑 Auth token saved: ${token.substring(0, 20)}...');
   }
 
   // Clear auth token from storage
@@ -26,6 +38,18 @@ class ApiService {
     _authToken = null;
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('auth_token');
+    print('🗑️ Auth token cleared');
+  }
+
+  // Set auth token manually (for testing)
+  static void setAuthToken(String token) {
+    _authToken = token;
+    print('🔑 Auth token set manually: ${token.substring(0, 20)}...');
+  }
+
+  // Get current auth token (for debugging)
+  static String? getCurrentToken() {
+    return _authToken;
   }
 
   // Get auth headers
@@ -37,6 +61,9 @@ class ApiService {
     
     if (_authToken != null) {
       headers['Authorization'] = 'Bearer $_authToken';
+      print('🔑 Adding Authorization header: Bearer ${_authToken!.substring(0, 20)}...');
+    } else {
+      print('⚠️ No auth token available for request');
     }
     
     return headers;
@@ -144,16 +171,32 @@ class ApiService {
 
   // Handle API errors
   static Exception _handleError(http.Response response) {
+    Exception exception;
+    
     try {
       final errorData = json.decode(response.body);
       if (errorData['message'] != null) {
-        return Exception(errorData['message']);
+        exception = Exception(errorData['message']);
+      } else {
+        exception = _getExceptionByStatusCode(response.statusCode);
       }
     } catch (e) {
       // If we can't parse the error, use the status code
+      exception = _getExceptionByStatusCode(response.statusCode);
     }
     
-    switch (response.statusCode) {
+    // Handle 401 errors globally
+    if (response.statusCode == 401) {
+      print('🚨 401 Unauthorized detected in API call');
+      ErrorHandler.handleApiError(exception);
+    }
+    
+    return exception;
+  }
+  
+  // Get exception by status code
+  static Exception _getExceptionByStatusCode(int statusCode) {
+    switch (statusCode) {
       case 401:
         return Exception('Unauthorized. Please login again.');
       case 403:
@@ -165,7 +208,7 @@ class ApiService {
       case 500:
         return Exception('Server error. Please try again later.');
       default:
-        return Exception('Request failed with status: ${response.statusCode}');
+        return Exception('Request failed with status: $statusCode');
     }
   }
 } 

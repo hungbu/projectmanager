@@ -236,6 +236,17 @@ class ProjectRepository {
       color: map['color'] as String?,
     );
   }
+
+  // Clear local data
+  Future<void> clearLocalData() async {
+    await _box.clear();
+  }
+
+  // Force refresh from API (clear local and fetch fresh)
+  Future<List<Project>> forceRefreshFromApi() async {
+    await clearLocalData();
+    return getAllProjects();
+  }
 }
 
 // Provider

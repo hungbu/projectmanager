@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/constants/app_strings.dart';
+import '../../../../core/services/auth_service.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../providers/auth_providers.dart';
 
@@ -20,6 +21,7 @@ class _SplashPageState extends ConsumerState<SplashPage>
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
+  bool _hasStoredSession = false;
 
   @override
   void initState() {
@@ -46,6 +48,16 @@ class _SplashPageState extends ConsumerState<SplashPage>
     ));
 
     _animationController.forward();
+    
+    // Check if we have stored session data
+    _checkStoredSession();
+  }
+  
+  Future<void> _checkStoredSession() async {
+    final hasSession = await AuthService.hasStoredSession();
+    setState(() {
+      _hasStoredSession = hasSession;
+    });
   }
 
   @override
@@ -63,8 +75,10 @@ class _SplashPageState extends ConsumerState<SplashPage>
       if (!next.isLoading) {
         // Auth state has been determined, let the router handle navigation
         if (next.user != null) {
+          print('🚀 User authenticated, navigating to dashboard');
           // User is authenticated, router will redirect to dashboard
         } else {
+          print('🔐 No valid session, navigating to login');
           // User is not authenticated, router will redirect to login
         }
       }
@@ -134,9 +148,22 @@ class _SplashPageState extends ConsumerState<SplashPage>
               // Loading Indicator
               FadeTransition(
                 opacity: _fadeAnimation,
-                child: const CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.textInverse),
-                  strokeWidth: 3,
+                child: Column(
+                  children: [
+                    const CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.textInverse),
+                      strokeWidth: 3,
+                    ),
+                    const SizedBox(height: AppSizes.md),
+                    Text(
+                      _hasStoredSession 
+                        ? 'Validating session...' 
+                        : 'Loading...',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppColors.textInverse.withOpacity(0.8),
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: AppSizes.xl),

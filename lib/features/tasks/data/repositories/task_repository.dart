@@ -325,6 +325,17 @@ class TaskRepository {
       actualHours: map['actualHours'] as int?,
     );
   }
+
+  // Clear local data
+  Future<void> clearLocalData() async {
+    await _box.clear();
+  }
+
+  // Force refresh from API (clear local and fetch fresh)
+  Future<List<Task>> forceRefreshFromApi() async {
+    await clearLocalData();
+    return getAllTasks();
+  }
 }
 
 // Provider

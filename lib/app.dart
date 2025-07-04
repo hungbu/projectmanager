@@ -6,12 +6,15 @@ import 'package:google_fonts/google_fonts.dart';
 import 'core/constants/app_colors.dart';
 import 'core/constants/app_sizes.dart';
 import 'core/constants/app_strings.dart';
+import 'core/services/navigation_service.dart';
+import 'core/widgets/context_wrapper.dart';
 import 'features/auth/presentation/pages/login_page.dart';
 import 'features/auth/presentation/pages/register_page.dart';
 import 'features/auth/presentation/pages/splash_page.dart';
 import 'features/auth/presentation/providers/auth_providers.dart';
 import 'features/dashboard/presentation/pages/dashboard_page.dart';
 import 'features/projects/presentation/pages/projects_list_page.dart';
+import 'features/settings/presentation/pages/settings_page.dart';
 import 'features/tasks/presentation/pages/kanban_board_page.dart';
 import 'features/tasks/presentation/pages/task_detail_page.dart';
 import 'shared/widgets/bottom_navigation.dart';
@@ -21,11 +24,13 @@ class ProjectManagerApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return MaterialApp.router(
-      title: AppStrings.appName,
-      debugShowCheckedModeBanner: false,
-      theme: _buildTheme(),
-      routerConfig: _buildRouter(ref),
+    return ContextWrapper(
+      child: MaterialApp.router(
+        title: AppStrings.appName,
+        debugShowCheckedModeBanner: false,
+        theme: _buildTheme(),
+        routerConfig: _buildRouter(ref),
+      ),
     );
   }
 
@@ -235,10 +240,17 @@ class ProjectManagerApp extends ConsumerWidget {
     return GoRouter(
       initialLocation: '/splash',
       redirect: (context, state) {
-        final authState = ref.read(authStateProvider);
+        final authState = ref.watch(authStateProvider);
+        
+        print('🔄 Router redirect check:');
+        print('  - Current location: ${state.matchedLocation}');
+        print('  - Auth loading: ${authState.isLoading}');
+        print('  - Auth user: ${authState.user?.name ?? 'null'}');
+        print('  - Auth user ID: ${authState.user?.id ?? 'null'}');
         
         // If still loading, stay on splash
         if (authState.isLoading) {
+          print('  - Staying on splash (loading)');
           return '/splash';
         }
         
@@ -248,6 +260,7 @@ class ProjectManagerApp extends ConsumerWidget {
                            state.matchedLocation == '/register' ||
                            state.matchedLocation == '/splash';
           if (!isAuthPage) {
+            print('  - Redirecting to login (not authenticated)');
             return '/login';
           }
         }
@@ -258,10 +271,12 @@ class ProjectManagerApp extends ConsumerWidget {
                            state.matchedLocation == '/register' ||
                            state.matchedLocation == '/splash';
           if (isAuthPage) {
+            print('  - Redirecting to dashboard (authenticated)');
             return '/dashboard';
           }
         }
         
+        print('  - No redirect needed');
         return null;
       },
       routes: [
@@ -305,6 +320,10 @@ class ProjectManagerApp extends ConsumerWidget {
                 final taskId = state.pathParameters['taskId']!;
                 return TaskDetailPage(taskId: taskId);
               },
+            ),
+            GoRoute(
+              path: '/settings',
+              builder: (context, state) => const SettingsPage(),
             ),
           ],
         ),

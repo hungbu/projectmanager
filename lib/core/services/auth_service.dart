@@ -12,22 +12,43 @@ class AuthService {
 
   // Check if user is authenticated
   static bool get isAuthenticated => _currentUser != null;
+  
+  // Check if we have stored session data (without validation)
+  static Future<bool> hasStoredSession() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userData = prefs.getString('user_data');
+    final authToken = prefs.getString('auth_token');
+    return userData != null && authToken != null;
+  }
 
   // Initialize auth service
   static Future<void> initialize() async {
     await ApiService.initialize();
     
-    // Try to get stored user data
+    // Try to get stored user data and validate session
     final prefs = await SharedPreferences.getInstance();
     final userData = prefs.getString('user_data');
-    if (userData != null) {
+    final authToken = prefs.getString('auth_token');
+    
+    if (userData != null && authToken != null) {
       try {
-        final userMap = json.decode(userData) as Map<String, dynamic>;
-        _currentUser = User.fromJson(userMap);
+        // Validate session with server
+        final user = await getCurrentUser();
+        if (user != null) {
+          _currentUser = user;
+          print('✅ Session validated successfully');
+        } else {
+          // Session is invalid, clear data
+          await clearUserData();
+          print('❌ Session validation failed, cleared data');
+        }
       } catch (e) {
-        // Clear invalid data
+        // Session validation failed, clear data
         await clearUserData();
+        print('❌ Session validation error: $e');
       }
+    } else {
+      print('ℹ️ No stored session found');
     }
   }
 
