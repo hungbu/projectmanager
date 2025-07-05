@@ -5,7 +5,9 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/constants/app_strings.dart';
+import '../../../../core/services/api_service.dart';
 import '../../../../core/widgets/custom_button.dart';
+import '../../../../core/utils/web_token_fix.dart';
 import '../providers/auth_providers.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
@@ -46,6 +48,24 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
     final authNotifier = ref.read(authStateProvider.notifier);
     await authNotifier.login(_emailController.text, _passwordController.text);
+    
+    // Fix web token issues after login
+    await WebTokenFix.fixWebTokenIssues();
+    
+    // Test API connection to ensure token is working
+    await Future.delayed(const Duration(milliseconds: 500)); // Wait for state to settle
+    
+    // Test API connection only if widget is still mounted
+    if (mounted) {
+      final success = await ApiService.testApiConnection();
+      if (success) {
+        print('✅ API connection test passed after login');
+      } else {
+        print('❌ API connection test failed after login');
+      }
+    } else {
+      print('⚠️ Widget disposed, skipping API test');
+    }
   }
 
   String? _validateEmail(String? value) {

@@ -5,6 +5,9 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/services/data_clear_service.dart';
+import '../../../../core/services/auth_service.dart';
+import '../../../../core/utils/web_token_fix.dart';
+import '../../../../core/utils/api_connectivity_test.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../projects/data/repositories/project_repository.dart';
 import '../../../tasks/data/repositories/task_repository.dart';
@@ -283,6 +286,131 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     }
   }
 
+  // Debug methods
+  Future<void> _testWebToken() async {
+    try {
+      final success = await WebTokenFix.testApiConnectionDetailed();
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(success ? 'API connection test successful' : 'API connection test failed'),
+            backgroundColor: success ? AppColors.success : AppColors.error,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error testing web token: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _fixWebTokenIssues() async {
+    try {
+      await WebTokenFix.fixWebTokenIssues();
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Web token issues fixed'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error fixing web token issues: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _forceReinitialize() async {
+    try {
+      await WebTokenFix.forceReinitialize();
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Auth system reinitialized'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error reinitializing: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _testApiConnectivity() async {
+    try {
+      final results = await ApiConnectivityTest.runComprehensiveTest();
+      
+      if (mounted) {
+        final allPassed = results.values.every((result) => result == true);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(allPassed ? 'API connectivity test passed' : 'API connectivity test failed'),
+            backgroundColor: allPassed ? AppColors.success : AppColors.error,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error testing API connectivity: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _clearCorruptedData() async {
+    try {
+      await AuthService.clearCorruptedData();
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Corrupted data cleared successfully'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+        
+        // Refresh data statistics
+        await _loadDataStatistics();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error clearing corrupted data: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authStateProvider);
@@ -411,6 +539,73 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                           
                           const SizedBox(height: AppSizes.lg),
 
+                        ],
+                      ),
+                    ),
+                  ),
+                  
+                  const SizedBox(height: AppSizes.lg),
+                  
+                  // Debug Tools
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(AppSizes.lg),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Debug Tools',
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
+                          const SizedBox(height: AppSizes.lg),
+                          
+                          // Test Web Token
+                          ListTile(
+                            leading: const Icon(Icons.bug_report),
+                            title: const Text('Test Web Token'),
+                            subtitle: const Text('Test token persistence and API calls'),
+                            onTap: _testWebToken,
+                          ),
+                          
+                          const Divider(),
+                          
+                          // Fix Web Token Issues
+                          ListTile(
+                            leading: const Icon(Icons.build),
+                            title: const Text('Fix Web Token Issues'),
+                            subtitle: const Text('Force refresh token from storage'),
+                            onTap: _fixWebTokenIssues,
+                          ),
+                          
+                          const Divider(),
+                          
+                          // Force Reinitialize
+                          ListTile(
+                            leading: const Icon(Icons.refresh),
+                            title: const Text('Force Reinitialize'),
+                            subtitle: const Text('Clear and reinitialize auth system'),
+                            onTap: _forceReinitialize,
+                          ),
+                          
+                          const Divider(),
+                          
+                          // Test API Connectivity
+                          ListTile(
+                            leading: const Icon(Icons.wifi),
+                            title: const Text('Test API Connectivity'),
+                            subtitle: const Text('Check if API server is accessible'),
+                            onTap: _testApiConnectivity,
+                          ),
+                          
+                          const Divider(),
+                          
+                          // Clear Corrupted Data
+                          ListTile(
+                            leading: const Icon(Icons.cleaning_services),
+                            title: const Text('Clear Corrupted Data'),
+                            subtitle: const Text('Clear corrupted user data and start fresh'),
+                            onTap: _clearCorruptedData,
+                          ),
                         ],
                       ),
                     ),

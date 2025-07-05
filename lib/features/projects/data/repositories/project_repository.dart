@@ -16,11 +16,30 @@ class ProjectRepository {
   // Get all projects from API
   Future<List<Project>> getAllProjects() async {
     try {
+      print('🔍 Fetching projects from API...');
       final response = await ApiService.get(ApiEndpoints.projects);
-      final List<dynamic> projectsData = response as List<dynamic>;
+      print('✅ API Response received: ${response.runtimeType}');
+      print('Response content: $response');
       
-      return projectsData.map((data) => _fromApiMap(data as Map<String, dynamic>)).toList();
+      List<dynamic> projectsData;
+      
+      if (response is List<dynamic>) {
+        print('📊 Found ${response.length} projects in response');
+        projectsData = response;
+      } else {
+        print('❌ Unexpected response type: ${response.runtimeType}');
+        return [];
+      }
+      
+      final projects = projectsData.map((data) {
+        print('🔄 Converting project data: ${data.runtimeType}');
+        return _fromApiMap(data as Map<String, dynamic>);
+      }).toList();
+      
+      print('✅ Successfully converted ${projects.length} projects');
+      return projects;
     } catch (e) {
+      print('❌ Error fetching projects from API: $e');
       // Fallback to local storage if API fails
       return _getAllProjectsFromLocal();
     }

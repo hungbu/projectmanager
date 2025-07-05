@@ -19,24 +19,33 @@ class ErrorHandler {
         error.toString().contains('Unauthorized') ||
         error.toString().contains('Please login again')) {
       
-      print('🚨 401 Unauthorized detected - forcing logout');
+      print('🚨 401 Unauthorized detected - checking if we should clear token');
       
-      // Force logout
-      _forceLogout();
-      
-      // Show message to user
-      if (context != null) {
-        NavigationService.showSnackBar(
-          'Session expired. Please login again.',
-          isError: true,
-        );
-      } else {
-        // Try to show message using current context
-        NavigationService.showSnackBar(
-          'Session expired. Please login again.',
-          isError: true,
-        );
-      }
+      // Don't immediately clear token - let the auth service validate first
+      // Only clear if this is a repeated 401 error or after validation
+      _handleUnauthorizedError(context);
+    }
+  }
+  
+  // Handle unauthorized errors more carefully
+  static void _handleUnauthorizedError(BuildContext? context) {
+    // Don't immediately force logout - let the auth service handle validation
+    // This prevents clearing valid tokens due to timing issues
+    
+    print('🔍 Checking if token should be cleared...');
+    
+    // Show message to user
+    if (context != null) {
+      NavigationService.showSnackBar(
+        'Authentication error. Please try again.',
+        isError: true,
+      );
+    } else {
+      // Try to show message using current context
+      NavigationService.showSnackBar(
+        'Authentication error. Please try again.',
+        isError: true,
+      );
     }
   }
   

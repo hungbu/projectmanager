@@ -12,14 +12,19 @@ class ApiService {
 
   // Initialize auth token from storage
   static Future<void> initialize() async {
-    final prefs = await SharedPreferences.getInstance();
-    _authToken = prefs.getString('auth_token');
-    
-    // Debug logging
-    if (_authToken != null) {
-      print('🔑 Auth token loaded: ${_authToken!.substring(0, 20)}...');
-    } else {
-      print('⚠️ No auth token found in storage');
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _authToken = prefs.getString('auth_token');
+      
+      // Debug logging
+      if (_authToken != null) {
+        print('🔑 Auth token loaded: ${_authToken!.substring(0, 20)}...');
+      } else {
+        print('⚠️ No auth token found in storage');
+      }
+    } catch (e) {
+      print('❌ Error initializing API service: $e');
+      _authToken = null;
     }
   }
 
@@ -52,7 +57,82 @@ class ApiService {
     return _authToken;
   }
 
-  // Get auth headers
+  // Test if API is accessible with current token
+  static Future<bool> testApiConnection() async {
+    try {
+      final headers = await getHeaders();
+      print('🧪 Testing API connection...');
+      print('  - Headers: ${headers.keys}');
+      if (headers['Authorization'] != null) {
+        print('  - Auth header: Bearer ${headers['Authorization']!.substring(7, 27)}...');
+      }
+      
+      // Try a simple GET request to test connection
+      final url = Uri.parse('$_baseUrl/user');
+      print('  - Request URL: $url');
+      print('  - Request headers: $headers');
+      
+      final response = await http.get(url, headers: headers);
+      
+      print('  - Response status: ${response.statusCode}');
+      print('  - Response headers: ${response.headers}');
+      print('  - Response body: ${response.body.substring(0, 200)}...');
+      
+      if (response.statusCode == 200) {
+        print('✅ API connection test successful');
+        return true;
+      } else {
+        print('❌ API connection test failed: ${response.statusCode}');
+        print('  - Error response: ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      print('❌ API connection test error: $e');
+      return false;
+    }
+  }
+
+  // Force refresh token from storage
+  static Future<void> refreshTokenFromStorage() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _authToken = prefs.getString('auth_token');
+      
+      if (_authToken != null) {
+        print('🔄 Token refreshed from storage: ${_authToken!.substring(0, 20)}...');
+      } else {
+        print('⚠️ No token found in storage during refresh');
+      }
+    } catch (e) {
+      print('❌ Error refreshing token from storage: $e');
+      _authToken = null;
+    }
+  }
+
+  // Get auth headers with token refresh
+  static Future<Map<String, String>> getHeaders() async {
+    final headers = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest', // For Laravel CSRF protection
+    };
+    
+    // If no token in memory, try to refresh from storage
+    if (_authToken == null) {
+      await refreshTokenFromStorage();
+    }
+    
+    if (_authToken != null) {
+      headers['Authorization'] = 'Bearer $_authToken';
+      print('🔑 Adding Authorization header: Bearer ${_authToken!.substring(0, 20)}...');
+    } else {
+      print('⚠️ No auth token available for request');
+    }
+    
+    return headers;
+  }
+
+  // Get auth headers (synchronous version for backward compatibility)
   static Map<String, String> get _headers {
     final headers = {
       'Content-Type': 'application/json',
@@ -70,11 +150,12 @@ class ApiService {
   }
 
   // Generic GET request
-  static Future<Map<String, dynamic>> get(String endpoint) async {
+  static Future<dynamic> get(String endpoint) async {
     try {
+      final headers = await getHeaders();
       final response = await http.get(
         Uri.parse('$_baseUrl$endpoint'),
-        headers: _headers,
+        headers: headers,
       );
 
       if (response.statusCode == 200) {
@@ -88,14 +169,15 @@ class ApiService {
   }
 
   // Generic POST request
-  static Future<Map<String, dynamic>> post(
+  static Future<dynamic> post(
     String endpoint, 
     Map<String, dynamic> data
   ) async {
     try {
+      final headers = await getHeaders();
       final response = await http.post(
         Uri.parse('$_baseUrl$endpoint'),
-        headers: _headers,
+        headers: headers,
         body: json.encode(data),
       );
 
@@ -110,14 +192,15 @@ class ApiService {
   }
 
   // Generic PUT request
-  static Future<Map<String, dynamic>> put(
+  static Future<dynamic> put(
     String endpoint, 
     Map<String, dynamic> data
   ) async {
     try {
+      final headers = await getHeaders();
       final response = await http.put(
         Uri.parse('$_baseUrl$endpoint'),
-        headers: _headers,
+        headers: headers,
         body: json.encode(data),
       );
 
@@ -132,14 +215,15 @@ class ApiService {
   }
 
   // Generic PATCH request
-  static Future<Map<String, dynamic>> patch(
+  static Future<dynamic> patch(
     String endpoint, 
     Map<String, dynamic> data
   ) async {
     try {
+      final headers = await getHeaders();
       final response = await http.patch(
         Uri.parse('$_baseUrl$endpoint'),
-        headers: _headers,
+        headers: headers,
         body: json.encode(data),
       );
 
@@ -156,9 +240,10 @@ class ApiService {
   // Generic DELETE request
   static Future<void> delete(String endpoint) async {
     try {
+      final headers = await getHeaders();
       final response = await http.delete(
         Uri.parse('$_baseUrl$endpoint'),
-        headers: _headers,
+        headers: headers,
       );
 
       if (response.statusCode < 200 || response.statusCode >= 300) {
@@ -185,9 +270,16 @@ class ApiService {
       exception = _getExceptionByStatusCode(response.statusCode);
     }
     
-    // Handle 401 errors globally
+    // Handle 401 errors globally - but don't clear token immediately
     if (response.statusCode == 401) {
       print('🚨 401 Unauthorized detected in API call');
+      print('🔍 Current token: ${_authToken != null ? 'Present' : 'Missing'}');
+      if (_authToken != null) {
+        print('  - Token: ${_authToken!.substring(0, 20)}...');
+      }
+      
+      // Only clear token if it's definitely invalid (not just a timing issue)
+      // Let the auth service handle token clearing after validation
       ErrorHandler.handleApiError(exception);
     }
     

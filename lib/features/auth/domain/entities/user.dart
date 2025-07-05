@@ -74,31 +74,31 @@ class User extends Equatable {
     return {
       'id': id,
       'email': email,
-      'fullName': fullName,
+      'name': fullName, // API expects 'name'
       'avatar': avatar,
       'phone': phone,
       'address': address,
       'bio': bio,
-      'createdAt': createdAt.toIso8601String(),
-      'updatedAt': updatedAt.toIso8601String(),
-      'isActive': isActive,
+      'created_at': createdAt.toIso8601String(), // API uses snake_case
+      'updated_at': updatedAt.toIso8601String(), // API uses snake_case
+      'is_active': isActive, // API uses snake_case
       'roles': roles,
     };
   }
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      id: json['id'] as String,
+      id: json['id'].toString(),
       email: json['email'] as String,
-      fullName: json['fullName'] as String,
+      fullName: json['name'] as String, // API returns 'name' not 'fullName'
       avatar: json['avatar'] as String?,
       phone: json['phone'] as String?,
       address: json['address'] as String?,
       bio: json['bio'] as String?,
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      updatedAt: DateTime.parse(json['updatedAt'] as String),
-      isActive: json['isActive'] as bool,
-      roles: List<String>.from(json['roles'] as List),
+      createdAt: DateTime.parse(json['created_at'] as String), // API uses snake_case
+      updatedAt: DateTime.parse(json['updated_at'] as String), // API uses snake_case
+      isActive: json['is_active'] as bool? ?? true, // API might not have this field
+      roles: json['roles'] != null ? List<String>.from(json['roles'] as List) : [], // API might not have roles
     );
   }
 } 
