@@ -104,7 +104,20 @@ class User extends Equatable {
       if (isActive == 'is_active') {
         return true;
       }
-      return isActive as bool? ?? true;
+      // Handle integer values (1 = true, 0 = false)
+      if (isActive is int) {
+        return isActive == 1;
+      }
+      // Handle boolean values
+      if (isActive is bool) {
+        return isActive;
+      }
+      // Handle string values
+      if (isActive is String) {
+        return isActive.toLowerCase() == 'true' || isActive == '1';
+      }
+      // Default to true if value is null or unrecognized
+      return true;
     }
     
     return User(

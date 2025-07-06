@@ -12,15 +12,23 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            // First, add the new columns
-            $table->enum('role', ['admin', 'partner', 'user'])->default('user')->after('email');
-            $table->boolean('is_active')->default(true)->after('role');
+            // Check if role column exists before adding it
+            if (!Schema::hasColumn('users', 'role')) {
+                $table->enum('role', ['admin', 'partner', 'user'])->default('user')->after('email');
+            }
+            
+            // Check if is_active column exists before adding it
+            if (!Schema::hasColumn('users', 'is_active')) {
+                $table->boolean('is_active')->default(true)->after('role');
+            }
         });
         
-        // Then rename the name column to full_name
-        Schema::table('users', function (Blueprint $table) {
-            $table->renameColumn('name', 'full_name');
-        });
+        // Check if name column exists before renaming it
+        if (Schema::hasColumn('users', 'name') && !Schema::hasColumn('users', 'full_name')) {
+            Schema::table('users', function (Blueprint $table) {
+                $table->renameColumn('name', 'full_name');
+            });
+        }
     }
 
     /**
@@ -29,11 +37,19 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            // First rename back
-            $table->renameColumn('full_name', 'name');
+            // Only rename back if full_name exists and name doesn't
+            if (Schema::hasColumn('users', 'full_name') && !Schema::hasColumn('users', 'name')) {
+                $table->renameColumn('full_name', 'name');
+            }
             
-            // Then drop the added columns
-            $table->dropColumn(['role', 'is_active']);
+            // Only drop columns if they exist
+            if (Schema::hasColumn('users', 'role')) {
+                $table->dropColumn('role');
+            }
+            
+            if (Schema::hasColumn('users', 'is_active')) {
+                $table->dropColumn('is_active');
+            }
         });
     }
 };

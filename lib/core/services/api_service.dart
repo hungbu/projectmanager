@@ -30,12 +30,48 @@ class ApiService {
 
   // Save auth token to storage
   static Future<void> saveAuthToken(String token) async {
-    _authToken = token;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('auth_token', token);
+    print('🔑 Starting saveAuthToken process...');
+    print('🔑 Token to save: ${token.substring(0, 20)}...');
     
-    // Debug logging
-    print('🔑 Auth token saved: ${token.substring(0, 20)}...');
+    try {
+      _authToken = token;
+      print('✅ Token set in memory');
+      
+      final prefs = await SharedPreferences.getInstance();
+      print('✅ SharedPreferences instance obtained');
+      
+      await prefs.setString('auth_token', token);
+      print('✅ Token saved to SharedPreferences');
+      
+      // Debug logging
+      print('🔑 Auth token saved: ${token.substring(0, 20)}...');
+      
+      // Verify token was saved correctly
+      await Future.delayed(const Duration(milliseconds: 50));
+      final savedToken = prefs.getString('auth_token');
+      if (savedToken == token) {
+        print('✅ Token verification successful');
+      } else {
+        print('❌ Token verification failed');
+        print('  - Expected: ${token.substring(0, 20)}...');
+        print('  - Got: ${savedToken?.substring(0, 20) ?? 'null'}...');
+        
+        // Try saving again
+        await prefs.setString('auth_token', token);
+        print('🔄 Retrying token save...');
+        
+        // Verify again
+        final retryToken = prefs.getString('auth_token');
+        if (retryToken == token) {
+          print('✅ Token verification successful after retry');
+        } else {
+          print('❌ Token verification failed after retry');
+        }
+      }
+    } catch (e) {
+      print('❌ Error in saveAuthToken: $e');
+      rethrow;
+    }
   }
 
   // Clear auth token from storage
@@ -44,6 +80,29 @@ class ApiService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('auth_token');
     print('🗑️ Auth token cleared');
+  }
+  
+  // Force clear and reinitialize token storage (for macOS issues)
+  static Future<void> forceClearAndReinitialize() async {
+    print('🔄 Force clearing and reinitializing token storage...');
+    
+    try {
+      // Clear everything
+      _authToken = null;
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('auth_token');
+      await prefs.remove('user_data');
+      
+      // Wait a moment
+      await Future.delayed(const Duration(milliseconds: 100));
+      
+      // Try to reinitialize
+      await initialize();
+      
+      print('✅ Force clear and reinitialize complete');
+    } catch (e) {
+      print('❌ Error during force clear and reinitialize: $e');
+    }
   }
 
   // Set auth token manually (for testing)
@@ -102,6 +161,25 @@ class ApiService {
         print('🔑 Token refreshed from storage: ${_authToken!.substring(0, 20)}...');
       } else {
         print('⚠️ No token found in storage');
+        
+        // Additional debug info for macOS
+        try {
+          final allKeys = prefs.getKeys();
+          print('🔍 Debug: All SharedPreferences keys: $allKeys');
+          
+          // Check if there are any auth-related keys
+          final authKeys = allKeys.where((key) => key.contains('auth') || key.contains('token') || key.contains('user')).toList();
+          print('🔍 Debug: Auth-related keys: $authKeys');
+          
+          for (final key in authKeys) {
+            final value = prefs.getString(key);
+            if (value != null) {
+              print('🔍 Debug: Key "$key" has value: ${value.substring(0, 20)}...');
+            }
+          }
+        } catch (e) {
+          print('🔍 Debug: Error checking SharedPreferences keys: $e');
+        }
       }
     } catch (e) {
       print('❌ Error refreshing token from storage: $e');
@@ -117,8 +195,15 @@ class ApiService {
       'X-Requested-With': 'XMLHttpRequest', // For Laravel CSRF protection
     };
     
-    // If no token in memory, try to refresh from storage
+    // Always try to refresh from storage on macOS to ensure token is available
     if (_authToken == null) {
+      await refreshTokenFromStorage();
+    }
+    
+    // Double-check token availability before making request
+    if (_authToken == null) {
+      // Try one more time with a small delay
+      await Future.delayed(const Duration(milliseconds: 100));
       await refreshTokenFromStorage();
     }
     
@@ -127,6 +212,17 @@ class ApiService {
       print('🔑 Adding Authorization header: Bearer ${_authToken!.substring(0, 20)}...');
     } else {
       print('⚠️ No auth token available for request');
+      // Log additional debug info
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final storedToken = prefs.getString('auth_token');
+        print('🔍 Debug: Stored token in SharedPreferences: ${storedToken != null ? 'Present' : 'Missing'}');
+        if (storedToken != null) {
+          print('🔍 Debug: Stored token preview: ${storedToken.substring(0, 20)}...');
+        }
+      } catch (e) {
+        print('🔍 Debug: Error checking SharedPreferences: $e');
+      }
     }
     
     return headers;

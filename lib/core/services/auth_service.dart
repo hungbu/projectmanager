@@ -119,6 +119,9 @@ class AuthService {
 
   // Login user
   static Future<User> login(String email, String password) async {
+    print('🔐 === AUTH SERVICE LOGIN START ===');
+    print('📧 Email: $email');
+    print('🔑 Password: ${password.length} characters');
     final response = await ApiService.post(
       ApiEndpoints.login,
       {
@@ -153,15 +156,45 @@ class AuthService {
     final user = User.fromJson(userData);
 
     // Save token and user data
-    await ApiService.saveAuthToken(token);
-    await _saveUserData(user);
+    print('💾 Starting token save process...');
+    try {
+      await ApiService.saveAuthToken(token);
+      print('✅ Token save completed');
+    } catch (e) {
+      print('❌ Error saving token: $e');
+    }
+    
+    print('💾 Starting user data save process...');
+    try {
+      await _saveUserData(user);
+      print('✅ User data save completed');
+    } catch (e) {
+      print('❌ Error saving user data: $e');
+    }
+    
     _currentUser = user;
+    
+    // Verify token was actually saved
+    print('🔍 Verifying token was saved to storage...');
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final savedToken = prefs.getString('auth_token');
+      if (savedToken == token) {
+        print('✅ Token verification successful - token is in storage');
+      } else {
+        print('❌ Token verification failed');
+        print('  - Expected: ${token.substring(0, 20)}...');
+        print('  - Got: ${savedToken?.substring(0, 20) ?? 'null'}...');
+      }
+    } catch (e) {
+      print('❌ Error verifying token: $e');
+    }
     
     // Force refresh API service token to ensure it's loaded
     await ApiService.refreshTokenFromStorage();
     
-    // Add a small delay to ensure token is properly set
-    await Future.delayed(const Duration(milliseconds: 100));
+    // Add a longer delay for macOS to ensure token is properly set
+    await Future.delayed(const Duration(milliseconds: 200));
     
     // Verify token is properly set
     final currentToken = ApiService.getCurrentToken();
@@ -169,8 +202,18 @@ class AuthService {
       print('✅ Token properly set after login: ${currentToken.substring(0, 20)}...');
     } else {
       print('⚠️ Token not properly set after login');
+      
+      // Try to force refresh one more time
+      await ApiService.refreshTokenFromStorage();
+      final retryToken = ApiService.getCurrentToken();
+      if (retryToken != null) {
+        print('✅ Token set after retry: ${retryToken.substring(0, 20)}...');
+      } else {
+        print('❌ Token still not available after retry');
+      }
     }
 
+    print('🔐 === AUTH SERVICE LOGIN END ===');
     return user;
   }
 

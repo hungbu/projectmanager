@@ -54,7 +54,20 @@ class _SplashPageState extends ConsumerState<SplashPage>
   
   Future<void> _checkStoredSession() async {
     try {
-      // Use getme endpoint to validate session
+      print('🔍 === SPLASH SESSION CHECK ===');
+      
+      // First check if we have stored session data
+      final hasStoredSession = await AuthService.hasStoredSession();
+      print('📱 Has stored session: $hasStoredSession');
+      
+      if (!hasStoredSession) {
+        print('ℹ️ No stored session found, navigating to login');
+        context.go('/login');
+        return;
+      }
+      
+      // Only try to validate session if we have stored data
+      print('🔍 Validating stored session...');
       final user = await AuthService.getMe();
       
       // If user is valid, navigate to dashboard
@@ -62,12 +75,16 @@ class _SplashPageState extends ConsumerState<SplashPage>
         print('✅ User authenticated via getMe, navigating to dashboard');
         context.go('/dashboard');
       } else {
-        print('❌ No valid session, navigating to login');
+        print('❌ Stored session is invalid, navigating to login');
         context.go('/login');
       }
     } catch (e) {
       print('❌ Error checking session: $e');
+      // On error, navigate to login
+      context.go('/login');
     }
+    
+    print('🔍 === END SPLASH SESSION CHECK ===');
   }
 
   @override

@@ -6,11 +6,6 @@ import 'app.dart';
 import 'core/services/auth_service.dart';
 import 'core/services/error_handler.dart';
 import 'core/services/navigation_service.dart';
-import 'core/utils/data_clear_util.dart';
-import 'core/utils/token_test_util.dart';
-import 'core/utils/session_util.dart';
-import 'core/utils/web_session_debug.dart';
-import 'core/utils/api_connectivity_test.dart';
 import 'features/projects/data/repositories/project_repository.dart';
 import 'features/tasks/data/repositories/task_repository.dart';
 
@@ -29,21 +24,6 @@ void main() async {
   
   await projectRepository.initialize();
   await taskRepository.initialize();
-  
-  // Print data statistics for debugging
-  await DataClearUtil.printDataStatistics();
-  
-  // Test token functionality
-  TokenTestUtil.printTokenInfo();
-  
-  // Print session information
-  await SessionUtil.printSessionInfo();
-  
-  // Debug web session issues
-  await WebSessionDebug.debugWebSession();
-  
-  // Test API connectivity
-  await ApiConnectivityTest.runComprehensiveTest();
   
   runApp(
     ProviderScope(

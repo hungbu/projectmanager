@@ -61,14 +61,26 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   Future<void> login(String email, String password) async {
+    print('🔐 === AUTH PROVIDER LOGIN ===');
+    print('📧 Email: $email');
+    print('🔑 Password: ${password.length} characters');
+    
     state = state.copyWith(isLoading: true, error: null);
     
     try {
+      print('🔄 Calling AuthService.login()...');
       final user = await AuthService.login(email, password);
+      print('✅ AuthService.login() completed successfully');
+      print('👤 User returned: ${user.fullName}');
+      
       state = state.copyWith(user: user, isLoading: false);
+      print('✅ Auth provider state updated with user');
     } catch (e) {
+      print('❌ AuthService.login() failed: $e');
       state = state.copyWith(error: e.toString(), isLoading: false);
     }
+    
+    print('🔐 === END AUTH PROVIDER LOGIN ===');
   }
 
   Future<void> register(String name, String email, String password, String passwordConfirmation) async {
