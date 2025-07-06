@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:uuid/uuid.dart';
+import '../../../users/domain/entities/user.dart';
 
 enum ProjectStatus {
   active,
@@ -34,6 +35,7 @@ class Project extends Equatable {
   final String description;
   final String ownerId;
   final List<String> memberIds;
+  final List<User>? users;
   final DateTime createdAt;
   final DateTime updatedAt;
   final ProjectStatus status;
@@ -47,6 +49,7 @@ class Project extends Equatable {
     required this.description,
     required this.ownerId,
     required this.memberIds,
+    this.users,
     required this.createdAt,
     required this.updatedAt,
     this.status = ProjectStatus.active,
@@ -85,6 +88,7 @@ class Project extends Equatable {
     String? description,
     String? ownerId,
     List<String>? memberIds,
+    List<User>? users,
     DateTime? createdAt,
     DateTime? updatedAt,
     ProjectStatus? status,
@@ -98,6 +102,7 @@ class Project extends Equatable {
       description: description ?? this.description,
       ownerId: ownerId ?? this.ownerId,
       memberIds: memberIds ?? this.memberIds,
+      users: users ?? this.users,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       status: status ?? this.status,
@@ -114,6 +119,7 @@ class Project extends Equatable {
         description,
         ownerId,
         memberIds,
+        users,
         createdAt,
         updatedAt,
         status,
@@ -141,25 +147,40 @@ class Project extends Equatable {
   }
 
   factory Project.fromJson(Map<String, dynamic> json) {
+    // Handle API response format
+    List<User>? users;
+    if (json['users'] != null) {
+      users = (json['users'] as List)
+          .map((userJson) => User.fromJson(userJson))
+          .toList();
+    }
+
     return Project(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      description: json['description'] as String,
-      ownerId: json['ownerId'] as String,
-      memberIds: List<String>.from(json['memberIds'] as List),
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      updatedAt: DateTime.parse(json['updatedAt'] as String),
+      id: json['id']?.toString() ?? '',
+      name: json['name']?.toString() ?? '',
+      description: json['description']?.toString() ?? '',
+      ownerId: json['owner_id']?.toString() ?? '',
+      memberIds: json['memberIds'] != null 
+          ? List<String>.from(json['memberIds'] as List)
+          : [],
+      users: users,
+      createdAt: json['created_at'] != null 
+          ? DateTime.parse(json['created_at'].toString())
+          : DateTime.now(),
+      updatedAt: json['updated_at'] != null 
+          ? DateTime.parse(json['updated_at'].toString())
+          : DateTime.now(),
       status: ProjectStatus.values.firstWhere(
-        (e) => e.name == json['status'],
+        (e) => e.name == (json['status']?.toString() ?? 'active'),
         orElse: () => ProjectStatus.active,
       ),
-      startDate: json['startDate'] != null
-          ? DateTime.parse(json['startDate'] as String)
+      startDate: json['start_date'] != null
+          ? DateTime.parse(json['start_date'].toString())
           : null,
-      endDate: json['endDate'] != null
-          ? DateTime.parse(json['endDate'] as String)
+      endDate: json['end_date'] != null
+          ? DateTime.parse(json['end_date'].toString())
           : null,
-      color: null,
+      color: json['color']?.toString(),
     );
   }
 

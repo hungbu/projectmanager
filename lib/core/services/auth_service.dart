@@ -27,6 +27,8 @@ class AuthService {
     try {
       final response = await ApiService.get(ApiEndpoints.user);
       
+      print('🔍 getMe response: $response');
+      
       // Handle different response formats
       Map<String, dynamic> userData;
       if (response is Map<String, dynamic>) {
@@ -40,12 +42,15 @@ class AuthService {
         throw Exception('Unexpected response format: ${response.runtimeType}');
       }
       
+      print('🔍 User data to parse: $userData');
+      
       final user = User.fromJson(userData);
       await _saveUserData(user);
       _currentUser = user;
       return user;
     } catch (e) {
       print('❌ getMe failed: $e');
+      print('🔍 Error details: ${e.runtimeType}');
       
       // Only clear data if it's definitely a 401 error, not a network issue
       if (e.toString().contains('401') || e.toString().contains('Unauthorized')) {
@@ -122,6 +127,8 @@ class AuthService {
       },
     );
 
+    print('🔍 Login response: $response');
+
     // Handle different response formats
     Map<String, dynamic> userData;
     String token;
@@ -139,6 +146,9 @@ class AuthService {
     } else {
       throw Exception('Unexpected response format: ${response.runtimeType}');
     }
+
+    print('🔍 User data from login: $userData');
+    print('🔍 Token from login: ${token.substring(0, 20)}...');
 
     final user = User.fromJson(userData);
 
@@ -176,6 +186,8 @@ class AuthService {
       },
     );
 
+    print('🔍 Register response: $response');
+
     // Handle different response formats
     Map<String, dynamic> userData;
     String token;
@@ -193,6 +205,9 @@ class AuthService {
     } else {
       throw Exception('Unexpected response format: ${response.runtimeType}');
     }
+
+    print('🔍 User data from register: $userData');
+    print('🔍 Token from register: ${token.substring(0, 20)}...');
 
     final user = User.fromJson(userData);
 

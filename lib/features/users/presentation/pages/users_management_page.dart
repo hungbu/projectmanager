@@ -210,7 +210,7 @@ ${stackTrace?.toString() ?? 'No stack trace available'}
         leading: CircleAvatar(
           backgroundColor: user.isActive ? _getRoleColor(user.role) : Colors.grey,
           child: Text(
-            user.fullName.substring(0, 1).toUpperCase(),
+            (user.fullName.isNotEmpty ? user.fullName.substring(0, 1) : user.email.substring(0, 1)).toUpperCase(),
             style: const TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.bold,
@@ -221,7 +221,7 @@ ${stackTrace?.toString() ?? 'No stack trace available'}
           children: [
             Expanded(
               child: Text(
-                user.fullName,
+                user.fullName.isNotEmpty ? user.fullName : user.email,
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
                   color: user.isActive ? null : Colors.grey,
@@ -373,6 +373,7 @@ ${stackTrace?.toString() ?? 'No stack trace available'}
     String email = '';
     String fullName = '';
     String password = '';
+    String passwordConfirmation = '';
     UserRole selectedRole = UserRole.user;
 
     showDialog(
@@ -425,12 +426,30 @@ ${stackTrace?.toString() ?? 'No stack trace available'}
                   if (value == null || value.isEmpty) {
                     return 'Vui lòng nhập mật khẩu';
                   }
-                  if (value.length < 6) {
-                    return 'Mật khẩu phải có ít nhất 6 ký tự';
+                  if (value.length < 8) {
+                    return 'Mật khẩu phải có ít nhất 8 ký tự';
                   }
                   return null;
                 },
                 onSaved: (value) => password = value!,
+              ),
+              const SizedBox(height: AppSizes.sm),
+              TextFormField(
+                decoration: const InputDecoration(
+                  labelText: 'Xác nhận mật khẩu',
+                  hintText: '********',
+                ),
+                obscureText: true,
+                validator: (value) {
+                  // if (value == null || value.isEmpty) {
+                  //   return 'Vui lòng xác nhận mật khẩu';
+                  // }
+                  // if (value != password) {
+                  //   return 'Mật khẩu xác nhận không khớp';
+                  // }
+                  return null;
+                },
+                onSaved: (value) => passwordConfirmation = value!,
               ),
               const SizedBox(height: AppSizes.sm),
               DropdownButtonFormField<UserRole>(
@@ -468,6 +487,7 @@ ${stackTrace?.toString() ?? 'No stack trace available'}
                     email: email,
                     fullName: fullName,
                     password: password,
+                    passwordConfirmation: passwordConfirmation,
                     role: selectedRole,
                   );
                   

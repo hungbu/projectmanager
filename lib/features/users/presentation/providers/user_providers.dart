@@ -26,6 +26,7 @@ class UserStateNotifier extends StateNotifier<AsyncValue<List<User>>> {
     required String email,
     required String fullName,
     required String password,
+    required String passwordConfirmation,
     required UserRole role,
   }) async {
     try {
@@ -33,6 +34,7 @@ class UserStateNotifier extends StateNotifier<AsyncValue<List<User>>> {
         email: email,
         fullName: fullName,
         password: password,
+        passwordConfirmation: passwordConfirmation,
         role: role,
       );
       // Reload users after creating

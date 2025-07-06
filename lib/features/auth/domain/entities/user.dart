@@ -88,18 +88,41 @@ class User extends Equatable {
   }
 
   factory User.fromJson(Map<String, dynamic> json) {
+    // Handle cases where API returns literal strings instead of actual values
+    String getName() {
+      final name = json['name']?.toString() ?? '';
+      // If the value is literally "name", try to get from email
+      if (name == 'name' || name.isEmpty) {
+        return json['email']?.toString().split('@')[0] ?? 'User';
+      }
+      return name;
+    }
+    
+    bool getIsActive() {
+      final isActive = json['is_active'];
+      // If the value is literally "is_active", default to true
+      if (isActive == 'is_active') {
+        return true;
+      }
+      return isActive as bool? ?? true;
+    }
+    
     return User(
-      id: json['id'].toString(),
-      email: json['email'] as String,
-      fullName: json['name'] as String, // API returns 'name' not 'fullName'
-      avatar: json['avatar'] as String?,
-      phone: json['phone'] as String?,
-      address: json['address'] as String?,
-      bio: json['bio'] as String?,
-      createdAt: DateTime.parse(json['created_at'] as String), // API uses snake_case
-      updatedAt: DateTime.parse(json['updated_at'] as String), // API uses snake_case
-      isActive: json['is_active'] as bool? ?? true, // API might not have this field
-      role: UserRole.fromString(json['role'] as String? ?? 'user'), // API returns role name
+      id: json['id']?.toString() ?? '',
+      email: json['email']?.toString() ?? '',
+      fullName: getName(),
+      avatar: json['avatar']?.toString(),
+      phone: json['phone']?.toString(),
+      address: json['address']?.toString(),
+      bio: json['bio']?.toString(),
+      createdAt: json['created_at'] != null 
+          ? DateTime.parse(json['created_at'].toString())
+          : DateTime.now(),
+      updatedAt: json['updated_at'] != null 
+          ? DateTime.parse(json['updated_at'].toString())
+          : DateTime.now(),
+      isActive: getIsActive(),
+      role: UserRole.fromString(json['role']?.toString() ?? 'user'),
     );
   }
 } 

@@ -92,16 +92,16 @@ class ApiService {
     }
   }
 
-  // Force refresh token from storage
+  // Refresh token from storage
   static Future<void> refreshTokenFromStorage() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       _authToken = prefs.getString('auth_token');
       
       if (_authToken != null) {
-        print('🔄 Token refreshed from storage: ${_authToken!.substring(0, 20)}...');
+        print('🔑 Token refreshed from storage: ${_authToken!.substring(0, 20)}...');
       } else {
-        print('⚠️ No token found in storage during refresh');
+        print('⚠️ No token found in storage');
       }
     } catch (e) {
       print('❌ Error refreshing token from storage: $e');
@@ -175,11 +175,22 @@ class ApiService {
   ) async {
     try {
       final headers = await getHeaders();
+      final url = '$_baseUrl$endpoint';
+      final body = json.encode(data);
+      
+      print('🔍 POST request to: $url');
+      print('🔍 Request headers: $headers');
+      print('🔍 Request body: $body');
+      
       final response = await http.post(
-        Uri.parse('$_baseUrl$endpoint'),
+        Uri.parse(url),
         headers: headers,
-        body: json.encode(data),
+        body: body,
       );
+
+      print('🔍 Response status: ${response.statusCode}');
+      print('🔍 Response headers: ${response.headers}');
+      print('🔍 Response body: ${response.body}');
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
         return json.decode(response.body);
@@ -187,6 +198,7 @@ class ApiService {
         throw _handleError(response);
       }
     } catch (e) {
+      print('❌ POST request failed: $e');
       throw Exception('Network error: $e');
     }
   }

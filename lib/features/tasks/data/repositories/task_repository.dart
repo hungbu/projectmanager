@@ -17,10 +17,47 @@ class TaskRepository {
   Future<List<Task>> getAllTasks() async {
     try {
       final response = await ApiService.get(ApiEndpoints.tasks);
-      final List<dynamic> tasksData = response as List<dynamic>;
       
-      return tasksData.map((data) => _fromApiMap(data as Map<String, dynamic>)).toList();
+      print('🔍 getAllTasks response: $response');
+      
+      // Handle different response formats
+      List<dynamic> tasksData;
+      if (response is Map<String, dynamic>) {
+        // Check if response is wrapped in a data field
+        if (response.containsKey('data')) {
+          tasksData = response['data'] as List<dynamic>;
+        } else {
+          throw Exception('Unexpected response format: missing data field');
+        }
+      } else if (response is List<dynamic>) {
+        // Direct array response from Laravel API
+        tasksData = response;
+      } else {
+        throw Exception('Unexpected response format: ${response.runtimeType}');
+      }
+      
+      print('🔍 Tasks data to parse: $tasksData');
+      
+      final tasks = <Task>[];
+      for (int i = 0; i < tasksData.length; i++) {
+        try {
+          final taskData = tasksData[i];
+          if (taskData is Map<String, dynamic>) {
+            final task = _fromApiMap(taskData);
+            tasks.add(task);
+          } else {
+            print('⚠️ Skipping invalid task data at index $i: $taskData');
+          }
+        } catch (e) {
+          print('❌ Error parsing task at index $i: $e');
+          print('❌ Task data: ${tasksData[i]}');
+        }
+      }
+      
+      print('✅ Successfully parsed ${tasks.length} tasks');
+      return tasks;
     } catch (e) {
+      print('❌ Error loading tasks: $e');
       // Fallback to local storage if API fails
       return _getAllTasksFromLocal();
     }
@@ -41,10 +78,44 @@ class TaskRepository {
   Future<List<Task>> getTasksByProjectId(String projectId) async {
     try {
       final response = await ApiService.get('${ApiEndpoints.projects}/$projectId/tasks');
-      final List<dynamic> tasksData = response as List<dynamic>;
       
-      return tasksData.map((data) => _fromApiMap(data as Map<String, dynamic>)).toList();
+      print('🔍 getTasksByProjectId response: $response');
+      
+      // Handle different response formats
+      List<dynamic> tasksData;
+      if (response is Map<String, dynamic>) {
+        // Check if response is wrapped in a data field
+        if (response.containsKey('data')) {
+          tasksData = response['data'] as List<dynamic>;
+        } else {
+          throw Exception('Unexpected response format: missing data field');
+        }
+      } else if (response is List<dynamic>) {
+        // Direct array response from Laravel API
+        tasksData = response;
+      } else {
+        throw Exception('Unexpected response format: ${response.runtimeType}');
+      }
+      
+      final tasks = <Task>[];
+      for (int i = 0; i < tasksData.length; i++) {
+        try {
+          final taskData = tasksData[i];
+          if (taskData is Map<String, dynamic>) {
+            final task = _fromApiMap(taskData);
+            tasks.add(task);
+          } else {
+            print('⚠️ Skipping invalid task data at index $i: $taskData');
+          }
+        } catch (e) {
+          print('❌ Error parsing task at index $i: $e');
+          print('❌ Task data: ${tasksData[i]}');
+        }
+      }
+      
+      return tasks;
     } catch (e) {
+      print('❌ Error loading tasks by project: $e');
       // Fallback to local storage if API fails
       return _getTasksByProjectIdFromLocal(projectId);
     }
@@ -54,10 +125,44 @@ class TaskRepository {
   Future<List<Task>> getTasksByAssigneeId(String assigneeId) async {
     try {
       final response = await ApiService.get('${ApiEndpoints.tasks}?assignee_id=$assigneeId');
-      final List<dynamic> tasksData = response as List<dynamic>;
       
-      return tasksData.map((data) => _fromApiMap(data as Map<String, dynamic>)).toList();
+      print('🔍 getTasksByAssigneeId response: $response');
+      
+      // Handle different response formats
+      List<dynamic> tasksData;
+      if (response is Map<String, dynamic>) {
+        // Check if response is wrapped in a data field
+        if (response.containsKey('data')) {
+          tasksData = response['data'] as List<dynamic>;
+        } else {
+          throw Exception('Unexpected response format: missing data field');
+        }
+      } else if (response is List<dynamic>) {
+        // Direct array response from Laravel API
+        tasksData = response;
+      } else {
+        throw Exception('Unexpected response format: ${response.runtimeType}');
+      }
+      
+      final tasks = <Task>[];
+      for (int i = 0; i < tasksData.length; i++) {
+        try {
+          final taskData = tasksData[i];
+          if (taskData is Map<String, dynamic>) {
+            final task = _fromApiMap(taskData);
+            tasks.add(task);
+          } else {
+            print('⚠️ Skipping invalid task data at index $i: $taskData');
+          }
+        } catch (e) {
+          print('❌ Error parsing task at index $i: $e');
+          print('❌ Task data: ${tasksData[i]}');
+        }
+      }
+      
+      return tasks;
     } catch (e) {
+      print('❌ Error loading tasks by assignee: $e');
       // Fallback to local storage if API fails
       return _getTasksByAssigneeIdFromLocal(assigneeId);
     }
@@ -67,10 +172,44 @@ class TaskRepository {
   Future<List<Task>> getTasksByStatus(String projectId, TaskStatus status) async {
     try {
       final response = await ApiService.get('${ApiEndpoints.tasks}?project_id=$projectId&status=${status.name}');
-      final List<dynamic> tasksData = response as List<dynamic>;
       
-      return tasksData.map((data) => _fromApiMap(data as Map<String, dynamic>)).toList();
+      print('🔍 getTasksByStatus response: $response');
+      
+      // Handle different response formats
+      List<dynamic> tasksData;
+      if (response is Map<String, dynamic>) {
+        // Check if response is wrapped in a data field
+        if (response.containsKey('data')) {
+          tasksData = response['data'] as List<dynamic>;
+        } else {
+          throw Exception('Unexpected response format: missing data field');
+        }
+      } else if (response is List<dynamic>) {
+        // Direct array response from Laravel API
+        tasksData = response;
+      } else {
+        throw Exception('Unexpected response format: ${response.runtimeType}');
+      }
+      
+      final tasks = <Task>[];
+      for (int i = 0; i < tasksData.length; i++) {
+        try {
+          final taskData = tasksData[i];
+          if (taskData is Map<String, dynamic>) {
+            final task = _fromApiMap(taskData);
+            tasks.add(task);
+          } else {
+            print('⚠️ Skipping invalid task data at index $i: $taskData');
+          }
+        } catch (e) {
+          print('❌ Error parsing task at index $i: $e');
+          print('❌ Task data: ${tasksData[i]}');
+        }
+      }
+      
+      return tasks;
     } catch (e) {
+      print('❌ Error loading tasks by status: $e');
       // Fallback to local storage if API fails
       final tasks = await _getTasksByProjectIdFromLocal(projectId);
       return tasks.where((task) => task.status == status).toList();

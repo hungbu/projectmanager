@@ -4,6 +4,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../../../../core/services/api_service.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../domain/entities/project.dart';
+import '../../../users/domain/entities/user.dart';
 
 class ProjectRepository {
   static const String _boxName = 'projects';
@@ -23,7 +24,15 @@ class ProjectRepository {
       
       List<dynamic> projectsData;
       
-      if (response is List<dynamic>) {
+      if (response is Map<String, dynamic>) {
+        // Check if response is wrapped in a data field
+        if (response.containsKey('data')) {
+          projectsData = response['data'] as List<dynamic>;
+        } else {
+          throw Exception('Unexpected response format: missing data field');
+        }
+      } else if (response is List<dynamic>) {
+        // Direct array response from Laravel API
         print('📊 Found ${response.length} projects in response');
         projectsData = response;
       } else {
@@ -31,10 +40,22 @@ class ProjectRepository {
         return [];
       }
       
-      final projects = projectsData.map((data) {
-        print('🔄 Converting project data: ${data.runtimeType}');
-        return _fromApiMap(data as Map<String, dynamic>);
-      }).toList();
+      final projects = <Project>[];
+      for (int i = 0; i < projectsData.length; i++) {
+        try {
+          final projectData = projectsData[i];
+          if (projectData is Map<String, dynamic>) {
+            print('🔄 Converting project data: ${projectData.runtimeType}');
+            final project = _fromApiMap(projectData);
+            projects.add(project);
+          } else {
+            print('⚠️ Skipping invalid project data at index $i: $projectData');
+          }
+        } catch (e) {
+          print('❌ Error parsing project at index $i: $e');
+          print('❌ Project data: ${projectsData[i]}');
+        }
+      }
       
       print('✅ Successfully converted ${projects.length} projects');
       return projects;
@@ -182,12 +203,35 @@ class ProjectRepository {
 
   // Convert API response to Project entity
   Project _fromApiMap(Map<String, dynamic> data) {
+    // Parse users/members from API response
+    List<User>? users;
+    if (data['users'] != null && data['users'] is List) {
+      try {
+        users = (data['users'] as List).map((userData) {
+          if (userData is Map<String, dynamic>) {
+            return User.fromJson(userData);
+          }
+          return null;
+        }).whereType<User>().toList();
+      } catch (e) {
+        print('❌ Error parsing users for project ${data['id']}: $e');
+        users = [];
+      }
+    }
+
+    // Extract member IDs from users
+    List<String> memberIds = [];
+    if (users != null) {
+      memberIds = users.map((user) => user!.id).toList();
+    }
+
     return Project(
       id: data['id'].toString(),
       name: data['name'] as String,
       description: data['description'] as String? ?? '',
       ownerId: data['owner_id'].toString(),
-      memberIds: [], // API doesn't return member IDs in this implementation
+      memberIds: memberIds,
+      users: users,
       createdAt: DateTime.parse(data['created_at']),
       updatedAt: DateTime.parse(data['updated_at']),
       status: ProjectStatus.values.firstWhere(

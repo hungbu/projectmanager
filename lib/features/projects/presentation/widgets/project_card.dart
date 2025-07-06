@@ -11,6 +11,7 @@ class ProjectCard extends ConsumerWidget {
   final VoidCallback onTap;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
+  final VoidCallback? onManageMembers;
 
   const ProjectCard({
     super.key,
@@ -18,6 +19,7 @@ class ProjectCard extends ConsumerWidget {
     required this.onTap,
     required this.onEdit,
     required this.onDelete,
+    this.onManageMembers,
   });
 
   @override
@@ -66,6 +68,9 @@ class ProjectCard extends ConsumerWidget {
                             case 'delete':
                               onDelete();
                               break;
+                            case 'members':
+                              onManageMembers?.call();
+                              break;
                           }
                         },
                         itemBuilder: (context) => [
@@ -77,6 +82,17 @@ class ProjectCard extends ConsumerWidget {
                                   Icon(Icons.edit),
                                   SizedBox(width: 8),
                                   Text('Edit'),
+                                ],
+                              ),
+                            ),
+                          if (onManageMembers != null)
+                            const PopupMenuItem(
+                              value: 'members',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.people),
+                                  SizedBox(width: 8),
+                                  Text('Manage Members'),
                                 ],
                               ),
                             ),

@@ -7,6 +7,7 @@ import '../../domain/entities/project.dart';
 import '../providers/project_providers.dart';
 import '../widgets/project_card.dart';
 import '../widgets/create_project_dialog.dart';
+import '../widgets/project_members_dialog.dart';
 import '../../../../core/widgets/permission_wrapper.dart';
 
 class ProjectsListPage extends ConsumerStatefulWidget {
@@ -101,6 +102,7 @@ class _ProjectsListPageState extends ConsumerState<ProjectsListPage> {
             onTap: () => _navigateToProjectDetail(project),
             onEdit: () => _showEditProjectDialog(context, project),
             onDelete: () => _showDeleteConfirmation(project),
+            onManageMembers: () => _showManageMembersDialog(context, project),
           ),
         );
       },
@@ -256,5 +258,21 @@ class _ProjectsListPageState extends ConsumerState<ProjectsListPage> {
 
   void _navigateToProjectDetail(Project project) {
     context.push('/projects/${project.id}');
+  }
+
+  void _showManageMembersDialog(BuildContext context, Project project) {
+    showDialog(
+      context: context,
+      builder: (context) => ProjectMembersDialog(
+        projectId: project.id,
+        projectName: project.name,
+        currentMembers: project.users ?? [],
+      ),
+    ).then((refreshNeeded) {
+      if (refreshNeeded == true) {
+        // Refresh the projects list
+        ref.refresh(projectNotifierProvider);
+      }
+    });
   }
 } 

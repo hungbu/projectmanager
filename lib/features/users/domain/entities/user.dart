@@ -20,17 +20,47 @@ class User {
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
+    // Handle cases where API returns literal strings instead of actual values
+    String getName() {
+      final name = json['name']?.toString() ?? '';
+      // If the value is literally "name", try to get from email
+      if (name == 'name' || name.isEmpty) {
+        return json['email']?.toString().split('@')[0] ?? 'User';
+      }
+      return name;
+    }
+    
+    bool getIsActive() {
+      final isActive = json['is_active'];
+      // If the value is literally "is_active", default to true
+      if (isActive == 'is_active') {
+        return true;
+      }
+      // Handle both bool and int values from API
+      if (isActive is bool) {
+        return isActive;
+      }
+      if (isActive is int) {
+        return isActive == 1;
+      }
+      return true; // default to true
+    }
+    
     return User(
-      id: json['id'].toString(),
-      email: json['email'] ?? '',
-      fullName: json['full_name'] ?? json['name'] ?? '',
+      id: json['id']?.toString() ?? '',
+      email: json['email']?.toString() ?? '',
+      fullName: getName(),
       role: UserRole.values.firstWhere(
-        (role) => role.name == json['role'],
+        (role) => role.name == (json['role']?.toString() ?? 'user'),
         orElse: () => UserRole.user,
       ),
-      createdAt: DateTime.parse(json['created_at'] ?? DateTime.now().toIso8601String()),
-      updatedAt: DateTime.parse(json['updated_at'] ?? DateTime.now().toIso8601String()),
-      isActive: json['is_active'] ?? true,
+      createdAt: json['created_at'] != null 
+          ? DateTime.parse(json['created_at'].toString())
+          : DateTime.now(),
+      updatedAt: json['updated_at'] != null 
+          ? DateTime.parse(json['updated_at'].toString())
+          : DateTime.now(),
+      isActive: getIsActive(),
     );
   }
 
@@ -38,7 +68,7 @@ class User {
     return {
       'id': id,
       'email': email,
-      'full_name': fullName,
+      'name': fullName,
       'role': role.name,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
