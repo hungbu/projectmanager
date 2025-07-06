@@ -7,6 +7,7 @@ import '../../domain/entities/project.dart';
 import '../providers/project_providers.dart';
 import '../widgets/project_card.dart';
 import '../widgets/create_project_dialog.dart';
+import '../../../../core/widgets/permission_wrapper.dart';
 
 class ProjectsListPage extends ConsumerStatefulWidget {
   const ProjectsListPage({super.key});
@@ -45,9 +46,11 @@ class _ProjectsListPageState extends ConsumerState<ProjectsListPage> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showCreateProjectDialog(context),
-        child: const Icon(Icons.add),
+      floatingActionButton: CanCreateProject(
+        child: FloatingActionButton(
+          onPressed: () => _showCreateProjectDialog(context),
+          child: const Icon(Icons.add),
+        ),
       ),
     );
   }

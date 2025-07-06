@@ -37,7 +37,7 @@ class SessionUtil {
     
     print('💾 Has Stored Session: $hasStoredSession');
     print('✅ Is Authenticated: $isAuthenticated');
-    print('👤 Current User: ${currentUser?.name ?? 'None'}');
+    print('👤 Current User: ${currentUser?.fullName ?? 'None'}');
     
     print('🔍 === END SESSION INFO ===');
   }
@@ -58,7 +58,7 @@ class SessionUtil {
         
         if (user != null) {
           print('✅ Session validation successful');
-          print('👤 User: ${user.name} (${user.email})');
+          print('👤 User: ${user.fullName} (${user.email})');
         } else {
           print('❌ Session validation failed');
         }
@@ -100,7 +100,7 @@ class SessionUtil {
       'has_auth_token': authToken != null,
       'has_stored_session': hasStoredSession,
       'is_authenticated': isAuthenticated,
-      'current_user': currentUser?.name,
+      'current_user': currentUser?.fullName,
       'user_email': currentUser?.email,
       'user_id': currentUser?.id,
     };

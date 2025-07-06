@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_sizes.dart';
 import '../../core/constants/app_strings.dart';
+import '../../core/widgets/permission_wrapper.dart';
 
-class CustomBottomNavigation extends StatelessWidget {
+class CustomBottomNavigation extends ConsumerWidget {
   const CustomBottomNavigation({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final location = GoRouterState.of(context).matchedLocation;
     
     return Container(
@@ -48,14 +50,7 @@ class CustomBottomNavigation extends StatelessWidget {
                 route: '/projects',
                 isActive: location == '/projects',
               ),
-              _buildNavItem(
-                context,
-                icon: Icons.task_outlined,
-                activeIcon: Icons.task,
-                label: AppStrings.tasks,
-                route: '/tasks',
-                isActive: location == '/tasks',
-              ),
+
               _buildNavItem(
                 context,
                 icon: Icons.settings_outlined,
@@ -64,6 +59,7 @@ class CustomBottomNavigation extends StatelessWidget {
                 route: '/settings',
                 isActive: location == '/settings',
               ),
+
             ],
           ),
         ),

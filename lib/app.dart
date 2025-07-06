@@ -17,6 +17,7 @@ import 'features/projects/presentation/pages/projects_list_page.dart';
 import 'features/settings/presentation/pages/settings_page.dart';
 import 'features/tasks/presentation/pages/kanban_board_page.dart';
 import 'features/tasks/presentation/pages/task_detail_page.dart';
+import 'features/users/presentation/pages/users_management_page.dart';
 import 'shared/widgets/bottom_navigation.dart';
 
 class ProjectManagerApp extends ConsumerWidget {
@@ -245,7 +246,7 @@ class ProjectManagerApp extends ConsumerWidget {
         print('🔄 Router redirect check:');
         print('  - Current location: ${state.matchedLocation}');
         print('  - Auth loading: ${authState.isLoading}');
-        print('  - Auth user: ${authState.user?.name ?? 'null'}');
+        print('  - Auth user: ${authState.user?.fullName ?? 'null'}');
         print('  - Auth user ID: ${authState.user?.id ?? 'null'}');
         
         // If still loading, stay on splash
@@ -325,6 +326,11 @@ class ProjectManagerApp extends ConsumerWidget {
               path: '/settings',
               builder: (context, state) => const SettingsPage(),
             ),
+            GoRoute(
+              path: '/users',
+              builder: (context, state) => const UsersManagementPage(),
+            ),
+
           ],
         ),
       ],

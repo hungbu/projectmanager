@@ -44,7 +44,7 @@ class WebSessionDebug {
       
       print('🔐 AuthService State:');
       print('  - Is Authenticated: $authServiceAuthenticated');
-      print('  - Current User: ${authServiceUser?.name ?? 'None'}');
+      print('  - Current User: ${authServiceUser?.fullName ?? 'None'}');
       
       // Test token persistence
       await _testTokenPersistence();

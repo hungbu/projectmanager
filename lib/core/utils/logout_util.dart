@@ -15,7 +15,7 @@ class LogoutUtil {
       
       print('🔍 Current Auth State:');
       print('  - Is Authenticated: $isAuthenticated');
-      print('  - Current User: ${currentUser?.name ?? 'None'}');
+      print('  - Current User: ${currentUser?.fullName ?? 'None'}');
       
       if (isAuthenticated) {
         print('🔄 Performing logout...');
@@ -23,7 +23,7 @@ class LogoutUtil {
         
         print('✅ Logout completed');
         print('  - Is Authenticated: ${AuthService.isAuthenticated}');
-        print('  - Current User: ${AuthService.currentUser?.name ?? 'None'}');
+        print('  - Current User: ${AuthService.currentUser?.fullName ?? 'None'}');
         
         // Show success message
         if (context.mounted) {
@@ -106,7 +106,7 @@ class LogoutUtil {
     
     return {
       'is_authenticated': isAuthenticated,
-      'current_user': currentUser?.name,
+      'current_user': currentUser?.fullName,
       'user_email': currentUser?.email,
       'has_stored_session': hasStoredSession,
     };

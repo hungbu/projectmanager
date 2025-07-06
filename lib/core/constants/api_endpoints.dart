@@ -1,6 +1,6 @@
 class ApiEndpoints {
   // Base URL - Update this to your Laravel API URL
-  static const String baseUrl = 'http://localhost:8000/api';
+  static const String baseUrl = 'http://pm_api.test/api';
 
   // Authentication
   static const String login = '/login';
@@ -12,6 +12,7 @@ class ApiEndpoints {
   static const String resetPassword = '/auth/reset-password';
   
   // User Management
+  static const String users = '/users';
   static const String profile = '/user/profile';
   static const String updateProfile = '/user/profile';
   static const String changePassword = '/user/change-password';

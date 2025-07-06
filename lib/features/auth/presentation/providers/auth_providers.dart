@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/services/auth_service.dart';
+import '../../domain/entities/user.dart';
 
 // Auth state provider
 final authStateProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
@@ -110,9 +111,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
   // Force logout (for 401 errors)
   Future<void> forceLogout() async {
     print('🔄 Starting forced logout in auth provider...');
-    print('📱 Initial auth provider state:');
-    print('  - User: ${state.user?.name ?? 'null'}');
-    print('  - User ID: ${state.user?.id ?? 'null'}');
+          print('📱 Initial auth provider state:');
+      print('  - User: ${state.user?.fullName ?? 'null'}');
+      print('  - User ID: ${state.user?.id ?? 'null'}');
     
     try {
       // Clear auth data without API call
@@ -123,7 +124,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       final currentUser = AuthService.currentUser;
       print('🔍 AuthService state after clear:');
       print('  - Is Authenticated: $isAuthenticated');
-      print('  - Current User: ${currentUser?.name ?? 'null'}');
+      print('  - Current User: ${currentUser?.fullName ?? 'null'}');
       
       // Create a completely new state object to force update
       final newState = AuthState(
@@ -138,7 +139,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       
       // Verify the state was updated
       print('📱 State after first update:');
-      print('  - User: ${state.user?.name ?? 'null'}');
+      print('  - User: ${state.user?.fullName ?? 'null'}');
       print('  - User ID: ${state.user?.id ?? 'null'}');
       print('  - Is Loading: ${state.isLoading}');
       
@@ -152,7 +153,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       // Verify final state
       final finalState = state;
       print('📱 Final auth provider state:');
-      print('  - User: ${finalState.user?.name ?? 'null'}');
+      print('  - User: ${finalState.user?.fullName ?? 'null'}');
       print('  - User ID: ${finalState.user?.id ?? 'null'}');
       print('  - Is Loading: ${finalState.isLoading}');
       
@@ -161,12 +162,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
       final finalAuthServiceAuthenticated = AuthService.isAuthenticated;
       print('🔍 Final AuthService state:');
       print('  - Is Authenticated: $finalAuthServiceAuthenticated');
-      print('  - Current User: ${finalAuthServiceUser?.name ?? 'null'}');
+      print('  - Current User: ${finalAuthServiceUser?.fullName ?? 'null'}');
       
       // Verify the state is actually null
       if (finalState.user != null) {
         print('❌ Forced logout failed - user still present');
-        print('  - User name: ${finalState.user?.name}');
+        print('  - User name: ${finalState.user?.fullName}');
         print('  - User ID: ${finalState.user?.id}');
         
         // Try one more aggressive approach - create new state again
@@ -180,7 +181,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
         // Final verification
         final aggressiveState = state;
         print('📱 Final aggressive state:');
-        print('  - User: ${aggressiveState.user?.name ?? 'null'}');
+        print('  - User: ${aggressiveState.user?.fullName ?? 'null'}');
         print('  - User ID: ${aggressiveState.user?.id ?? 'null'}');
         
         if (aggressiveState.user == null) {
@@ -214,7 +215,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       
       print('🔍 AuthService current state:');
       print('  - Is Authenticated: $isAuthenticated');
-      print('  - Current User: ${currentUser?.name ?? 'null'}');
+      print('  - Current User: ${currentUser?.fullName ?? 'null'}');
       
       // Update provider state to match AuthService
       state = state.copyWith(
@@ -224,7 +225,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       );
       
       print('📱 Auth provider state updated:');
-      print('  - User: ${state.user?.name ?? 'null'}');
+      print('  - User: ${state.user?.fullName ?? 'null'}');
       print('  - Is Loading: ${state.isLoading}');
       
     } catch (e) {
@@ -243,10 +244,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
       
       print('🔍 AuthService state:');
       print('  - Is Authenticated: $isAuthenticated');
-      print('  - Current User: ${currentUser?.name ?? 'null'}');
+      print('  - Current User: ${currentUser?.fullName ?? 'null'}');
       
       print('📱 Current provider state:');
-      print('  - User: ${state.user?.name ?? 'null'}');
+      print('  - User: ${state.user?.fullName ?? 'null'}');
       print('  - Is Loading: ${state.isLoading}');
       
       // Update provider state to match AuthService
@@ -258,7 +259,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       
       print('✅ Provider state synced with AuthService');
       print('📱 Final provider state:');
-      print('  - User: ${state.user?.name ?? 'null'}');
+      print('  - User: ${state.user?.fullName ?? 'null'}');
       print('  - Is Loading: ${state.isLoading}');
       
     } catch (e) {
@@ -275,7 +276,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     
     print('✅ Auth state completely reset');
     print('📱 New state:');
-    print('  - User: ${state.user?.name ?? 'null'}');
+    print('  - User: ${state.user?.fullName ?? 'null'}');
     print('  - Is Loading: ${state.isLoading}');
     print('  - Error: ${state.error ?? 'null'}');
   }
@@ -298,9 +299,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
       final providerUser = state.user;
       
       print('🔍 Verification after aggressive logout:');
-      print('  - AuthService User: ${authServiceUser?.name ?? 'null'}');
+      print('  - AuthService User: ${authServiceUser?.fullName ?? 'null'}');
       print('  - AuthService Authenticated: $authServiceAuthenticated');
-      print('  - Provider User: ${providerUser?.name ?? 'null'}');
+      print('  - Provider User: ${providerUser?.fullName ?? 'null'}');
       
       if (authServiceUser == null && providerUser == null) {
         print('✅ Aggressive logout successful - both states cleared');

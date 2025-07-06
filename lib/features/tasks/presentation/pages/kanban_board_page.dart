@@ -6,6 +6,7 @@ import '../../domain/entities/task.dart';
 import '../providers/task_providers.dart';
 import '../widgets/task_card.dart';
 import '../widgets/create_task_dialog.dart';
+import '../../../../core/widgets/permission_wrapper.dart';
 
 class KanbanBoardPage extends ConsumerStatefulWidget {
   final String projectId;
@@ -28,9 +29,11 @@ class _KanbanBoardPageState extends ConsumerState<KanbanBoardPage> {
       appBar: AppBar(
         title: const Text('Kanban Board'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () => _showCreateTaskDialog(context),
+          CanCreateTask(
+            child: IconButton(
+              icon: const Icon(Icons.add),
+              onPressed: () => _showCreateTaskDialog(context),
+            ),
           ),
         ],
       ),

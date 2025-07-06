@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import '../../../../core/constants/user_roles.dart';
 
 class User extends Equatable {
   final String id;
@@ -11,7 +12,7 @@ class User extends Equatable {
   final DateTime createdAt;
   final DateTime updatedAt;
   final bool isActive;
-  final List<String> roles;
+  final UserRole role;
 
   const User({
     required this.id,
@@ -24,7 +25,7 @@ class User extends Equatable {
     required this.createdAt,
     required this.updatedAt,
     required this.isActive,
-    required this.roles,
+    required this.role,
   });
 
   @override
@@ -39,7 +40,7 @@ class User extends Equatable {
         createdAt,
         updatedAt,
         isActive,
-        roles,
+        role,
       ];
 
   User copyWith({
@@ -53,7 +54,7 @@ class User extends Equatable {
     DateTime? createdAt,
     DateTime? updatedAt,
     bool? isActive,
-    List<String>? roles,
+    UserRole? role,
   }) {
     return User(
       id: id ?? this.id,
@@ -66,7 +67,7 @@ class User extends Equatable {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       isActive: isActive ?? this.isActive,
-      roles: roles ?? this.roles,
+      role: role ?? this.role,
     );
   }
 
@@ -82,7 +83,7 @@ class User extends Equatable {
       'created_at': createdAt.toIso8601String(), // API uses snake_case
       'updated_at': updatedAt.toIso8601String(), // API uses snake_case
       'is_active': isActive, // API uses snake_case
-      'roles': roles,
+      'role': role.name, // API expects role name
     };
   }
 
@@ -98,7 +99,7 @@ class User extends Equatable {
       createdAt: DateTime.parse(json['created_at'] as String), // API uses snake_case
       updatedAt: DateTime.parse(json['updated_at'] as String), // API uses snake_case
       isActive: json['is_active'] as bool? ?? true, // API might not have this field
-      roles: json['roles'] != null ? List<String>.from(json['roles'] as List) : [], // API might not have roles
+      role: UserRole.fromString(json['role'] as String? ?? 'user'), // API returns role name
     );
   }
 } 

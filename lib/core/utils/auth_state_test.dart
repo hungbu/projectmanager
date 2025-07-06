@@ -15,7 +15,7 @@ class AuthStateTest {
       final authState = ref.read(authStateProvider);
       print('📱 Current Auth State:');
       print('  - Is Loading: ${authState.isLoading}');
-      print('  - User: ${authState.user?.name ?? 'null'}');
+      print('  - User: ${authState.user?.fullName ?? 'null'}');
       print('  - User ID: ${authState.user?.id ?? 'null'}');
       
       // Test AuthService state
@@ -23,7 +23,7 @@ class AuthStateTest {
       final currentUser = AuthService.currentUser;
       print('🔍 AuthService State:');
       print('  - Is Authenticated: $isAuthenticated');
-      print('  - Current User: ${currentUser?.name ?? 'null'}');
+      print('  - Current User: ${currentUser?.fullName ?? 'null'}');
       
       // Test context availability
       final contextAvailable = NavigationService.currentContext != null;
@@ -45,7 +45,7 @@ class AuthStateTest {
       // Get initial state
       final initialAuthState = ref.read(authStateProvider);
       print('📱 Initial Auth State:');
-      print('  - User: ${initialAuthState.user?.name ?? 'null'}');
+      print('  - User: ${initialAuthState.user?.fullName ?? 'null'}');
       
       // Perform forced logout
       final authNotifier = ref.read(authStateProvider.notifier);
@@ -57,7 +57,7 @@ class AuthStateTest {
       // Check final state
       final finalAuthState = ref.read(authStateProvider);
       print('📱 Final Auth State:');
-      print('  - User: ${finalAuthState.user?.name ?? 'null'}');
+      print('  - User: ${finalAuthState.user?.fullName ?? 'null'}');
       print('  - Is Loading: ${finalAuthState.isLoading}');
       
       // Verify AuthService state
@@ -65,7 +65,7 @@ class AuthStateTest {
       final currentUser = AuthService.currentUser;
       print('🔍 AuthService Final State:');
       print('  - Is Authenticated: $isAuthenticated');
-      print('  - Current User: ${currentUser?.name ?? 'null'}');
+      print('  - Current User: ${currentUser?.fullName ?? 'null'}');
       
       if (finalAuthState.user == null && !isAuthenticated) {
         print('✅ Forced logout successful - user cleared');
@@ -87,7 +87,7 @@ class AuthStateTest {
     try {
       final authState = ref.read(authStateProvider);
       print('📱 Current Auth State for Router:');
-      print('  - User: ${authState.user?.name ?? 'null'}');
+      print('  - User: ${authState.user?.fullName ?? 'null'}');
       print('  - Is Loading: ${authState.isLoading}');
       
       if (authState.user == null) {
@@ -111,7 +111,7 @@ class AuthStateTest {
       // Get initial state
       final initialAuthState = ref.read(authStateProvider);
       print('📱 Initial Auth Provider State:');
-      print('  - User: ${initialAuthState.user?.name ?? 'null'}');
+      print('  - User: ${initialAuthState.user?.fullName ?? 'null'}');
       
       // Force refresh auth state
       final authNotifier = ref.read(authStateProvider.notifier);
@@ -120,14 +120,14 @@ class AuthStateTest {
       // Check final state
       final finalAuthState = ref.read(authStateProvider);
       print('📱 Final Auth Provider State:');
-      print('  - User: ${finalAuthState.user?.name ?? 'null'}');
+      print('  - User: ${finalAuthState.user?.fullName ?? 'null'}');
       
       // Verify AuthService state
       final isAuthenticated = AuthService.isAuthenticated;
       final currentUser = AuthService.currentUser;
       print('🔍 AuthService State:');
       print('  - Is Authenticated: $isAuthenticated');
-      print('  - Current User: ${currentUser?.name ?? 'null'}');
+      print('  - Current User: ${currentUser?.fullName ?? 'null'}');
       
     } catch (e) {
       print('❌ Force refresh auth state test failed: $e');
@@ -144,7 +144,7 @@ class AuthStateTest {
       // Get initial state
       final initialAuthState = ref.read(authStateProvider);
       print('📱 Initial Auth Provider State:');
-      print('  - User: ${initialAuthState.user?.name ?? 'null'}');
+      print('  - User: ${initialAuthState.user?.fullName ?? 'null'}');
       print('  - Is Loading: ${initialAuthState.isLoading}');
       
       // Get AuthService state
@@ -152,7 +152,7 @@ class AuthStateTest {
       final initialAuthServiceAuthenticated = AuthService.isAuthenticated;
       print('🔍 Initial AuthService State:');
       print('  - Is Authenticated: $initialAuthServiceAuthenticated');
-      print('  - Current User: ${initialAuthServiceUser?.name ?? 'null'}');
+      print('  - Current User: ${initialAuthServiceUser?.fullName ?? 'null'}');
       
       // Force sync with AuthService
       final authNotifier = ref.read(authStateProvider.notifier);
@@ -161,7 +161,7 @@ class AuthStateTest {
       // Check final state
       final finalAuthState = ref.read(authStateProvider);
       print('📱 Final Auth Provider State:');
-      print('  - User: ${finalAuthState.user?.name ?? 'null'}');
+      print('  - User: ${finalAuthState.user?.fullName ?? 'null'}');
       print('  - Is Loading: ${finalAuthState.isLoading}');
       
       // Verify AuthService state
@@ -169,7 +169,7 @@ class AuthStateTest {
       final finalAuthServiceAuthenticated = AuthService.isAuthenticated;
       print('🔍 Final AuthService State:');
       print('  - Is Authenticated: $finalAuthServiceAuthenticated');
-      print('  - Current User: ${finalAuthServiceUser?.name ?? 'null'}');
+      print('  - Current User: ${finalAuthServiceUser?.fullName ?? 'null'}');
       
       // Check if states are synchronized
       final providerUser = finalAuthState.user;
@@ -179,8 +179,8 @@ class AuthStateTest {
         print('✅ Provider and AuthService states are synchronized');
       } else {
         print('❌ Provider and AuthService states are NOT synchronized');
-        print('  - Provider User: ${providerUser?.name ?? 'null'}');
-        print('  - Service User: ${serviceUser?.name ?? 'null'}');
+        print('  - Provider User: ${providerUser?.fullName ?? 'null'}');
+        print('  - Service User: ${serviceUser?.fullName ?? 'null'}');
       }
       
     } catch (e) {
@@ -198,7 +198,7 @@ class AuthStateTest {
       // Get initial state
       final initialAuthState = ref.read(authStateProvider);
       print('📱 Initial Auth Provider State:');
-      print('  - User: ${initialAuthState.user?.name ?? 'null'}');
+      print('  - User: ${initialAuthState.user?.fullName ?? 'null'}');
       print('  - User ID: ${initialAuthState.user?.id ?? 'null'}');
       
       // Get AuthService state
@@ -206,7 +206,7 @@ class AuthStateTest {
       final initialAuthServiceAuthenticated = AuthService.isAuthenticated;
       print('🔍 Initial AuthService State:');
       print('  - Is Authenticated: $initialAuthServiceAuthenticated');
-      print('  - Current User: ${initialAuthServiceUser?.name ?? 'null'}');
+      print('  - Current User: ${initialAuthServiceUser?.fullName ?? 'null'}');
       
       // Perform aggressive force logout
       final authNotifier = ref.read(authStateProvider.notifier);
@@ -218,7 +218,7 @@ class AuthStateTest {
       // Check final state
       final finalAuthState = ref.read(authStateProvider);
       print('📱 Final Auth Provider State:');
-      print('  - User: ${finalAuthState.user?.name ?? 'null'}');
+      print('  - User: ${finalAuthState.user?.fullName ?? 'null'}');
       print('  - User ID: ${finalAuthState.user?.id ?? 'null'}');
       print('  - Is Loading: ${finalAuthState.isLoading}');
       
@@ -227,15 +227,15 @@ class AuthStateTest {
       final finalAuthServiceAuthenticated = AuthService.isAuthenticated;
       print('🔍 Final AuthService State:');
       print('  - Is Authenticated: $finalAuthServiceAuthenticated');
-      print('  - Current User: ${finalAuthServiceUser?.name ?? 'null'}');
+      print('  - Current User: ${finalAuthServiceUser?.fullName ?? 'null'}');
       
       // Check if both states are cleared
       if (finalAuthState.user == null && finalAuthServiceUser == null) {
         print('✅ Aggressive logout successful - both states cleared');
       } else {
         print('❌ Aggressive logout failed - states not cleared');
-        print('  - Provider User: ${finalAuthState.user?.name ?? 'null'}');
-        print('  - Service User: ${finalAuthServiceUser?.name ?? 'null'}');
+        print('  - Provider User: ${finalAuthState.user?.fullName ?? 'null'}');
+        print('  - Service User: ${finalAuthServiceUser?.fullName ?? 'null'}');
       }
       
     } catch (e) {
