@@ -1,6 +1,8 @@
 class ApiEndpoints {
   // Base URL - Update this to your Laravel API URL
-  static const String baseUrl = 'http://localhost:8000/api';
+  static const String baseUrl = 'http://pm_api.test/api';
+  //static const String baseUrl = 'http://localhost:8000/api';
+  //static const String baseUrl = 'https://pm.vnwebsite.net/api';
 
   // Authentication
   static const String login = '/login';
