@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('title');
             $table->text('description')->nullable();
             $table->enum('status', ['todo', 'in_progress', 'review', 'done'])->default('todo');
-            $table->enum('priority', ['low', 'medium', 'high'])->default('medium');
+            $table->enum('priority', ['low', 'medium', 'high', 'urgent'])->default('medium');
             $table->foreignId('assignee_id')->nullable()->constrained('users')->onDelete('set null');
             $table->date('due_date')->nullable();
             $table->integer('estimated_hours')->nullable();
