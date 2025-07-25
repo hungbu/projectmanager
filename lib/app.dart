@@ -13,6 +13,7 @@ import 'features/auth/presentation/pages/register_page.dart';
 import 'features/auth/presentation/pages/splash_page.dart';
 import 'features/auth/presentation/providers/auth_providers.dart';
 import 'features/dashboard/presentation/pages/dashboard_page.dart';
+import 'features/dashboard/presentation/pages/workspace_page.dart';
 import 'features/projects/presentation/pages/projects_list_page.dart';
 import 'features/settings/presentation/pages/settings_page.dart';
 import 'features/tasks/presentation/pages/kanban_board_page.dart';
@@ -134,7 +135,7 @@ class ProjectManagerApp extends ConsumerWidget {
           size: AppSizes.iconMd,
         ),
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: AppColors.cardBackground,
         elevation: AppSizes.cardElevation,
         shape: RoundedRectangleBorder(
@@ -299,6 +300,10 @@ class ProjectManagerApp extends ConsumerWidget {
             GoRoute(
               path: '/dashboard',
               builder: (context, state) => const DashboardPage(),
+            ),
+            GoRoute(
+              path: '/workspace',
+              builder: (context, state) => const WorkspacePage(),
             ),
             GoRoute(
               path: '/projects',

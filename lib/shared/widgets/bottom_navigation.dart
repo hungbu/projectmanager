@@ -44,6 +44,14 @@ class CustomBottomNavigation extends ConsumerWidget {
               ),
               _buildNavItem(
                 context,
+                icon: Icons.view_agenda_outlined,
+                activeIcon: Icons.view_agenda,
+                label: 'Workspace',
+                route: '/workspace',
+                isActive: location == '/workspace',
+              ),
+              _buildNavItem(
+                context,
                 icon: Icons.folder_outlined,
                 activeIcon: Icons.folder,
                 label: AppStrings.projects,
