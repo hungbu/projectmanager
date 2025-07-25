@@ -9,6 +9,7 @@ import 'error_handler.dart';
 class ApiService {
   static const String _baseUrl = ApiEndpoints.baseUrl;
   static String? _authToken;
+  static String? _csrfToken;
 
   // Initialize auth token from storage
   static Future<void> initialize() async {
@@ -77,9 +78,10 @@ class ApiService {
   // Clear auth token from storage
   static Future<void> clearAuthToken() async {
     _authToken = null;
+    _csrfToken = null; // Also clear CSRF token
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('auth_token');
-    print('🗑️ Auth token cleared');
+    print('🗑️ Auth token and CSRF token cleared');
   }
   
   // Force clear and reinitialize token storage (for macOS issues)
@@ -114,6 +116,41 @@ class ApiService {
   // Get current auth token (for debugging)
   static String? getCurrentToken() {
     return _authToken;
+  }
+
+  // Get CSRF token from server
+  static Future<String?> getCsrfToken() async {
+    if (_csrfToken != null) return _csrfToken;
+    
+    try {
+      print('🔐 Fetching CSRF token from server...');
+      final response = await http.get(
+        Uri.parse('$_baseUrl${ApiEndpoints.csrfToken}'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      );
+      
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        _csrfToken = data['token'];
+        print('✅ CSRF token fetched: ${_csrfToken!.substring(0, 20)}...');
+        return _csrfToken;
+      } else {
+        print('❌ Failed to fetch CSRF token: ${response.statusCode}');
+        return null;
+      }
+    } catch (e) {
+      print('❌ Error fetching CSRF token: $e');
+      return null;
+    }
+  }
+
+  // Clear CSRF token
+  static void clearCsrfToken() {
+    _csrfToken = null;
+    print('🗑️ CSRF token cleared');
   }
 
   // Test if API is accessible with current token
@@ -188,12 +225,21 @@ class ApiService {
   }
 
   // Get auth headers with token refresh
-  static Future<Map<String, String>> getHeaders() async {
+  static Future<Map<String, String>> getHeaders({bool includeCsrf = false}) async {
     final headers = {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
       'X-Requested-With': 'XMLHttpRequest', // For Laravel CSRF protection
     };
+    
+    // Add CSRF token if requested
+    if (includeCsrf) {
+      final csrfToken = await getCsrfToken();
+      if (csrfToken != null) {
+        headers['X-CSRF-TOKEN'] = csrfToken;
+        print('🔐 Adding CSRF token to headers: ${csrfToken.substring(0, 20)}...');
+      }
+    }
     
     // Always try to refresh from storage on macOS to ensure token is available
     if (_authToken == null) {
@@ -267,10 +313,11 @@ class ApiService {
   // Generic POST request
   static Future<dynamic> post(
     String endpoint, 
-    Map<String, dynamic> data
+    Map<String, dynamic> data,
+    {bool includeCsrf = true} // Default to true for POST requests
   ) async {
     try {
-      final headers = await getHeaders();
+      final headers = await getHeaders(includeCsrf: includeCsrf);
       final url = '$_baseUrl$endpoint';
       final body = json.encode(data);
       
@@ -302,10 +349,11 @@ class ApiService {
   // Generic PUT request
   static Future<dynamic> put(
     String endpoint, 
-    Map<String, dynamic> data
+    Map<String, dynamic> data,
+    {bool includeCsrf = true} // Default to true for PUT requests
   ) async {
     try {
-      final headers = await getHeaders();
+      final headers = await getHeaders(includeCsrf: includeCsrf);
       final response = await http.put(
         Uri.parse('$_baseUrl$endpoint'),
         headers: headers,
@@ -325,10 +373,11 @@ class ApiService {
   // Generic PATCH request
   static Future<dynamic> patch(
     String endpoint, 
-    Map<String, dynamic> data
+    Map<String, dynamic> data,
+    {bool includeCsrf = true} // Default to true for PATCH requests
   ) async {
     try {
-      final headers = await getHeaders();
+      final headers = await getHeaders(includeCsrf: includeCsrf);
       final response = await http.patch(
         Uri.parse('$_baseUrl$endpoint'),
         headers: headers,

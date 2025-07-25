@@ -22,6 +22,18 @@ class AuthService {
     return userData != null && authToken != null;
   }
 
+  // Preload CSRF token for authentication
+  static Future<void> preloadCsrfToken() async {
+    try {
+      print('🔐 Preloading CSRF token for authentication...');
+      await ApiService.getCsrfToken();
+      print('✅ CSRF token preloaded successfully');
+    } catch (e) {
+      print('⚠️ Failed to preload CSRF token: $e');
+      // Continue anyway - some servers might not require CSRF for API endpoints
+    }
+  }
+
   // Get current user from server (getme endpoint)
   static Future<User?> getMe() async {
     try {
@@ -122,12 +134,17 @@ class AuthService {
     print('🔐 === AUTH SERVICE LOGIN START ===');
     print('📧 Email: $email');
     print('🔑 Password: ${password.length} characters');
+    
+    // Preload CSRF token before making login request
+    await preloadCsrfToken();
+    
     final response = await ApiService.post(
       ApiEndpoints.login,
       {
         'email': email,
         'password': password,
       },
+      includeCsrf: true, // Explicitly include CSRF token
     );
 
     print('🔍 Login response: $response');
@@ -219,6 +236,11 @@ class AuthService {
 
   // Register user
   static Future<User> register(String name, String email, String password, String passwordConfirmation) async {
+    print('🔐 === AUTH SERVICE REGISTER START ===');
+    
+    // Preload CSRF token before making register request
+    await preloadCsrfToken();
+    
     final response = await ApiService.post(
       ApiEndpoints.register,
       {
@@ -227,6 +249,7 @@ class AuthService {
         'password': password,
         'password_confirmation': passwordConfirmation,
       },
+      includeCsrf: true, // Explicitly include CSRF token
     );
 
     print('🔍 Register response: $response');
@@ -259,13 +282,14 @@ class AuthService {
     await _saveUserData(user);
     _currentUser = user;
 
+    print('🔐 === AUTH SERVICE REGISTER END ===');
     return user;
   }
 
   // Logout user
   static Future<void> logout() async {
     try {
-      await ApiService.post(ApiEndpoints.logout, {});
+      await ApiService.post(ApiEndpoints.logout, {}, includeCsrf: true);
     } catch (e) {
       // Even if logout fails on server, clear local data
     }

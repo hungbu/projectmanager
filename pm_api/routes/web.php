@@ -2,6 +2,11 @@
 
 use Illuminate\Support\Facades\Route;
 
+use App\Http\Controllers\Api\ProjectController;
+use App\Http\Controllers\Api\TaskController;
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\UserController;
+
 // Serve Flutter static files with correct MIME types (must come before catch-all)
 Route::get('/web/{file}', function ($file) {
     $path = public_path("web/{$file}");
@@ -42,8 +47,12 @@ Route::get('/', function () {
     return view('flutter-app');
 });
 
+
 // API routes (if any web routes are needed)
 Route::prefix('api')->group(function () {
+    Route::get('/csrf-token', function () {
+        return response()->json(['token' => csrf_token()]);
+    });
     // Public routes (no authentication required)
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
