@@ -42,6 +42,7 @@ class Project extends Equatable {
   final DateTime? startDate;
   final DateTime? endDate;
   final String? color;
+  final String? accessCode;
 
   const Project({
     required this.id,
@@ -56,6 +57,7 @@ class Project extends Equatable {
     this.startDate,
     this.endDate,
     this.color,
+    this.accessCode,
   });
 
   factory Project.create({
@@ -95,6 +97,7 @@ class Project extends Equatable {
     DateTime? startDate,
     DateTime? endDate,
     String? color,
+    String? accessCode,
   }) {
     return Project(
       id: id ?? this.id,
@@ -109,6 +112,7 @@ class Project extends Equatable {
       startDate: startDate ?? this.startDate,
       endDate: endDate ?? this.endDate,
       color: color ?? this.color,
+      accessCode: accessCode ?? this.accessCode,
     );
   }
 
@@ -126,6 +130,7 @@ class Project extends Equatable {
         startDate,
         endDate,
         color,
+        accessCode,
       ];
 
   Map<String, dynamic> toJson() {
@@ -181,6 +186,7 @@ class Project extends Equatable {
           ? DateTime.parse(json['end_date'].toString())
           : null,
       color: json['color']?.toString(),
+      accessCode: json['access_code']?.toString(),
     );
   }
 

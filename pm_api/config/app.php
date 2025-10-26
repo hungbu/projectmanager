@@ -54,6 +54,9 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
+    // Frontend URL for generating share links
+    'frontend_url' => env('FRONTEND_URL', env('APP_URL')), 
+
     /*
     |--------------------------------------------------------------------------
     | Application Timezone

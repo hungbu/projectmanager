@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../domain/entities/task.dart';
 import '../providers/task_providers.dart';
-import '../widgets/task_card.dart';
+import '../widgets/kanban_board_widget.dart';
 import '../widgets/create_task_dialog.dart';
 import '../../../../core/widgets/permission_wrapper.dart';
 
@@ -38,205 +38,16 @@ class _KanbanBoardPageState extends ConsumerState<KanbanBoardPage> {
         ],
       ),
       body: kanbanData.when(
-        data: (boardData) => _buildKanbanBoard(boardData),
+        data: (boardData) => KanbanBoardWidget(
+          boardData: boardData,
+          isReadOnly: false,
+          onTaskStatusChanged: _updateTaskStatus,
+          onTaskTap: _navigateToTaskDetail,
+          onTaskEdit: _showEditTaskDialog,
+          onTaskDelete: _showDeleteConfirmation,
+        ),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => _buildErrorWidget(error),
-      ),
-    );
-  }
-
-  Widget _buildKanbanBoard(Map<TaskStatus, List<Task>> boardData) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: SizedBox(
-            height: constraints.maxHeight,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: TaskStatus.values.map((status) {
-                final tasks = boardData[status] ?? [];
-                return _buildStatusColumn(status, tasks, constraints.maxHeight);
-              }).toList(),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildStatusColumn(TaskStatus status, List<Task> tasks, double maxHeight) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final columnWidth = constraints.maxWidth > 600 ? 300.0 : 280.0;
-        
-        return Container(
-          width: columnWidth,
-          height: maxHeight,
-          margin: const EdgeInsets.all(8.0),
-          child: Column(
-            children: [
-              _buildColumnHeader(status, tasks.length),
-              const SizedBox(height: 8),
-              Expanded(
-                child: DragTarget<Task>(
-                  onWillAccept: (task) => task != null && task.status != status,
-                  onAccept: (task) => _updateTaskStatus(task, status),
-                  builder: (context, candidateData, rejectedData) {
-                    return Container(
-                      decoration: BoxDecoration(
-                        color: candidateData.isNotEmpty
-                            ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
-                            : Theme.of(context).colorScheme.surface,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: candidateData.isNotEmpty
-                              ? Theme.of(context).colorScheme.primary
-                              : Theme.of(context).colorScheme.outline.withOpacity(0.2),
-                        ),
-                      ),
-                      child: tasks.isEmpty
-                          ? _buildEmptyColumn(status)
-                          : ListView.builder(
-                              padding: const EdgeInsets.all(8.0),
-                              itemCount: tasks.length,
-                              itemBuilder: (context, index) {
-                                final task = tasks[index];
-                                return Padding(
-                                  padding: const EdgeInsets.only(bottom: 8.0),
-                                  child: Draggable<Task>(
-                                    data: task,
-                                    feedback: Material(
-                                      elevation: 8,
-                                      child: SizedBox(
-                                        width: columnWidth - 20,
-                                        child: TaskCard(
-                                          task: task,
-                                          onTap: () => _navigateToTaskDetail(task),
-                                          onEdit: () => _showEditTaskDialog(context, task),
-                                          onDelete: () => _showDeleteConfirmation(task),
-                                        ),
-                                      ),
-                                    ),
-                                    childWhenDragging: Opacity(
-                                      opacity: 0.5,
-                                      child: TaskCard(
-                                        task: task,
-                                        onTap: () => _navigateToTaskDetail(task),
-                                        onEdit: () => _showEditTaskDialog(context, task),
-                                        onDelete: () => _showDeleteConfirmation(task),
-                                      ),
-                                    ),
-                                    child: TaskCard(
-                                      task: task,
-                                      onTap: () => _navigateToTaskDetail(task),
-                                      onEdit: () => _showEditTaskDialog(context, task),
-                                      onDelete: () => _showDeleteConfirmation(task),
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildColumnHeader(TaskStatus status, int taskCount) {
-    Color headerColor;
-    IconData headerIcon;
-
-    switch (status) {
-      case TaskStatus.todo:
-        headerColor = Colors.grey;
-        headerIcon = Icons.radio_button_unchecked;
-        break;
-      case TaskStatus.inProgress:
-        headerColor = Colors.blue;
-        headerIcon = Icons.play_circle_outline;
-        break;
-      case TaskStatus.review:
-        headerColor = Colors.orange;
-        headerIcon = Icons.visibility;
-        break;
-      case TaskStatus.done:
-        headerColor = Colors.green;
-        headerIcon = Icons.check_circle_outline;
-        break;
-    }
-
-    return Container(
-      padding: const EdgeInsets.all(12.0),
-      decoration: BoxDecoration(
-        color: headerColor.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: headerColor.withOpacity(0.3)),
-      ),
-      child: Row(
-        children: [
-          Icon(headerIcon, color: headerColor, size: 20),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              status.displayName,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: headerColor,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: headerColor.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              taskCount.toString(),
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: headerColor,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEmptyColumn(TaskStatus status) {
-    return Container(
-      padding: const EdgeInsets.all(32.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.inbox_outlined,
-            size: 48,
-            color: Theme.of(context).colorScheme.outline,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'No tasks',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: Theme.of(context).colorScheme.outline,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Drag tasks here or create new ones',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.outline,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
       ),
     );
   }
@@ -274,8 +85,10 @@ class _KanbanBoardPageState extends ConsumerState<KanbanBoardPage> {
     );
   }
 
-  void _updateTaskStatus(Task task, TaskStatus newStatus) {
-    ref.read(taskNotifierProvider.notifier).updateTaskStatus(task.id, newStatus);
+  void _updateTaskStatus(dynamic task, TaskStatus newStatus) {
+    if (task is Task) {
+      ref.read(taskNotifierProvider.notifier).updateTaskStatus(task.id, newStatus);
+    }
   }
 
   void _showCreateTaskDialog(BuildContext context) {
@@ -285,14 +98,18 @@ class _KanbanBoardPageState extends ConsumerState<KanbanBoardPage> {
     );
   }
 
-  void _showEditTaskDialog(BuildContext context, Task task) {
-    showDialog(
-      context: context,
-      builder: (context) => CreateTaskDialog(projectId: widget.projectId, task: task),
-    );
+  void _showEditTaskDialog(dynamic task) {
+    if (task is Task) {
+      showDialog(
+        context: context,
+        builder: (context) => CreateTaskDialog(projectId: widget.projectId, task: task),
+      );
+    }
   }
 
-  void _showDeleteConfirmation(Task task) {
+  void _showDeleteConfirmation(dynamic task) {
+    if (task is! Task) return;
+    
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -318,7 +135,9 @@ class _KanbanBoardPageState extends ConsumerState<KanbanBoardPage> {
     );
   }
 
-  void _navigateToTaskDetail(Task task) {
-    context.push('/tasks/${task.id}');
+  void _navigateToTaskDetail(dynamic task) {
+    if (task is Task) {
+      context.push('/tasks/${task.id}');
+    }
   }
 } 

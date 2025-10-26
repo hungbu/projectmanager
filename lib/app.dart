@@ -6,7 +6,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'core/constants/app_colors.dart';
 import 'core/constants/app_sizes.dart';
 import 'core/constants/app_strings.dart';
-import 'core/services/navigation_service.dart';
 import 'core/widgets/context_wrapper.dart';
 import 'features/auth/presentation/pages/login_page.dart';
 import 'features/auth/presentation/pages/register_page.dart';
@@ -15,6 +14,7 @@ import 'features/auth/presentation/providers/auth_providers.dart';
 import 'features/dashboard/presentation/pages/dashboard_page.dart';
 import 'features/dashboard/presentation/pages/workspace_page.dart';
 import 'features/projects/presentation/pages/projects_list_page.dart';
+import 'features/projects/presentation/pages/public_project_view_page.dart';
 import 'features/settings/presentation/pages/settings_page.dart';
 import 'features/tasks/presentation/pages/kanban_board_page.dart';
 import 'features/tasks/presentation/pages/task_detail_page.dart';
@@ -250,6 +250,12 @@ class ProjectManagerApp extends ConsumerWidget {
         print('  - Auth user: ${authState.user?.fullName ?? 'null'}');
         print('  - Auth user ID: ${authState.user?.id ?? 'null'}');
         
+        // Allow public routes without authentication
+        if (state.matchedLocation.startsWith('/public/')) {
+          print('  - Public route, no auth required');
+          return null;
+        }
+        
         // If still loading, stay on splash
         if (authState.isLoading) {
           print('  - Staying on splash (loading)');
@@ -267,14 +273,14 @@ class ProjectManagerApp extends ConsumerWidget {
           }
         }
         
-        // If authenticated and on auth pages, redirect to dashboard
+        // If authenticated and on auth pages, redirect to workspace
         if (authState.user != null) {
           final isAuthPage = state.matchedLocation == '/login' || 
                            state.matchedLocation == '/register' ||
                            state.matchedLocation == '/splash';
           if (isAuthPage) {
-            print('  - Redirecting to dashboard (authenticated)');
-            return '/dashboard';
+            print('  - Redirecting to workspace (authenticated)');
+            return '/workspace';
           }
         }
         
@@ -282,6 +288,10 @@ class ProjectManagerApp extends ConsumerWidget {
         return null;
       },
       routes: [
+        GoRoute(
+          path: '/',
+          redirect: (context, state) => '/splash',
+        ),
         GoRoute(
           path: '/splash',
           builder: (context, state) => const SplashPage(),
@@ -293,6 +303,14 @@ class ProjectManagerApp extends ConsumerWidget {
         GoRoute(
           path: '/register',
           builder: (context, state) => const RegisterPage(),
+        ),
+        // Public routes (no authentication required)
+        GoRoute(
+          path: '/public/project/:accessCode',
+          builder: (context, state) {
+            final accessCode = state.pathParameters['accessCode']!;
+            return PublicProjectViewPage(accessCode: accessCode);
+          },
         ),
         ShellRoute(
           builder: (context, state, child) => ScaffoldWithBottomNav(child: child),

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../projects/domain/entities/project.dart';
 import '../../../projects/presentation/providers/project_providers.dart';
+import '../../../projects/presentation/widgets/project_share_dialog.dart';
 import '../../../tasks/domain/entities/task.dart';
 import '../../../tasks/presentation/providers/task_providers.dart';
 import '../../../tasks/presentation/widgets/task_card.dart';
@@ -138,6 +139,12 @@ class _WorkspacePageState extends ConsumerState<WorkspacePage> {
             const SizedBox(width: AppSizes.sm),
             _buildProjectStats(project),
             const SizedBox(width: AppSizes.sm),
+            IconButton(
+              icon: const Icon(Icons.share, size: 20),
+              onPressed: () => _showShareDialog(project),
+              tooltip: 'Share project',
+              color: Theme.of(context).colorScheme.primary,
+            ),
             Icon(
               isExpanded ? Icons.expand_less : Icons.expand_more,
               color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -465,6 +472,16 @@ class _WorkspacePageState extends ConsumerState<WorkspacePage> {
     setState(() {
       _expandedProjects[projectId] = !(_expandedProjects[projectId] ?? false);
     });
+  }
+
+  void _showShareDialog(Project project) {
+    showDialog(
+      context: context,
+      builder: (context) => ProjectShareDialog(
+        projectId: project.id,
+        existingAccessCode: project.accessCode,
+      ),
+    );
   }
 
   Color _getProjectColor(Project project) {

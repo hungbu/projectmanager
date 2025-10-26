@@ -151,4 +151,52 @@ class ProjectController extends Controller
         
         return response()->json(['message' => 'Member removed successfully']);
     }
+
+    // Generate access code for public sharing
+    public function generateAccessCode(Request $request, $id)
+    {
+        $user = $request->user();
+        $project = Project::where('owner_id', $user->id)->findOrFail($id);
+        
+        $accessCode = $project->generateAccessCode();
+        
+        return response()->json([
+            'message' => 'Access code generated successfully',
+            'access_code' => $accessCode,
+            'share_url' => config('app.frontend_url') . '/public/project/' . $accessCode,
+        ]);
+    }
+
+    // Revoke access code
+    public function revokeAccessCode(Request $request, $id)
+    {
+        $user = $request->user();
+        $project = Project::where('owner_id', $user->id)->findOrFail($id);
+        
+        $project->revokeAccessCode();
+        
+        return response()->json([
+            'message' => 'Access code revoked successfully',
+        ]);
+    }
+
+    // Get access code info
+    public function getAccessCode(Request $request, $id)
+    {
+        $user = $request->user();
+        $project = Project::where('owner_id', $user->id)->findOrFail($id);
+        
+        if (!$project->hasAccessCode()) {
+            return response()->json([
+                'has_access_code' => false,
+                'message' => 'No access code set for this project',
+            ]);
+        }
+        
+        return response()->json([
+            'has_access_code' => true,
+            'access_code' => $project->access_code,
+            'share_url' => config('app.frontend_url') . '/public/project/' . $project->access_code,
+        ]);
+    }
 }

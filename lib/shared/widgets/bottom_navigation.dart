@@ -4,8 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_sizes.dart';
-import '../../core/constants/app_strings.dart';
-import '../../core/widgets/permission_wrapper.dart';
+import '../../core/constants/user_roles.dart';
+import '../../features/auth/presentation/providers/auth_providers.dart';
 
 class CustomBottomNavigation extends ConsumerWidget {
   const CustomBottomNavigation({super.key});
@@ -13,6 +13,8 @@ class CustomBottomNavigation extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final location = GoRouterState.of(context).matchedLocation;
+    final authState = ref.watch(authStateProvider);
+    final isAdmin = authState.user?.role == UserRole.admin;
     
     return Container(
       decoration: const BoxDecoration(
@@ -36,38 +38,30 @@ class CustomBottomNavigation extends ConsumerWidget {
             children: [
               _buildNavItem(
                 context,
-                icon: Icons.dashboard_outlined,
-                activeIcon: Icons.dashboard,
-                label: AppStrings.dashboard,
-                route: '/dashboard',
-                isActive: location == '/dashboard',
-              ),
-              _buildNavItem(
-                context,
                 icon: Icons.view_agenda_outlined,
                 activeIcon: Icons.view_agenda,
                 label: 'Workspace',
                 route: '/workspace',
                 isActive: location == '/workspace',
               ),
+              // Only show Projects tab for admin users
+              if (isAdmin)
+                _buildNavItem(
+                  context,
+                  icon: Icons.folder_outlined,
+                  activeIcon: Icons.folder,
+                  label: 'Projects',
+                  route: '/projects',
+                  isActive: location == '/projects',
+                ),
               _buildNavItem(
                 context,
-                icon: Icons.folder_outlined,
-                activeIcon: Icons.folder,
-                label: AppStrings.projects,
-                route: '/projects',
-                isActive: location == '/projects',
-              ),
-
-              _buildNavItem(
-                context,
-                icon: Icons.settings_outlined,
-                activeIcon: Icons.settings,
-                label: 'Settings',
+                icon: Icons.person_outlined,
+                activeIcon: Icons.person,
+                label: 'Profile',
                 route: '/settings',
                 isActive: location == '/settings',
               ),
-
             ],
           ),
         ),

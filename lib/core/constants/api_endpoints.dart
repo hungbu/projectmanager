@@ -1,8 +1,8 @@
 class ApiEndpoints {
   // Base URL - Update this to your Laravel API URL
-  //static const String baseUrl = 'http://pm_api.test/api';
+  static const String baseUrl = 'http://pm.test/api';
   //static const String baseUrl = 'http://localhost:8000/api';
-  static const String baseUrl = 'https://pm.vnwebsite.net/api';
+  //static const String baseUrl = 'https://pm.vnwebsite.net/api';
 
   // Authentication
   static const String csrfToken = '/csrf-token';
@@ -29,6 +29,14 @@ class ApiEndpoints {
   static const String projectTasks = '/projects/{id}/tasks';
   static const String addProjectMember = '/projects/{id}/add-member';
   static const String removeProjectMember = '/projects/{id}/remove-member';
+  static const String generateAccessCode = '/projects/{id}/access-code/generate';
+  static const String revokeAccessCode = '/projects/{id}/access-code';
+  static const String getAccessCode = '/projects/{id}/access-code';
+  
+  // Public access (no auth required)
+  static const String publicProject = '/public/project/{accessCode}';
+  static const String publicProjectTasks = '/public/project/{accessCode}/tasks';
+  static const String verifyAccessCode = '/public/verify/{accessCode}';
   
   // Tasks
   static const String tasks = '/tasks';

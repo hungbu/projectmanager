@@ -20,19 +20,8 @@ class NavigationService {
       
       // Try to find GoRouter in the context
       final goRouter = GoRouter.of(context);
-      if (goRouter != null) {
-        goRouter.go('/login');
-        print('✅ Navigation to login successful using GoRouter');
-      } else {
-        print('⚠️ GoRouter not found in context, trying fallback...');
-        // Fallback: try to use navigator key
-        try {
-          _navigatorKey.currentState?.pushNamedAndRemoveUntil('/login', (route) => false);
-          print('✅ Fallback navigation to login successful');
-        } catch (e2) {
-          print('❌ Fallback navigation also failed: $e2');
-        }
-      }
+      goRouter.go('/login');
+      print('✅ Navigation to login successful using GoRouter');
     } catch (e) {
       print('❌ Navigation to login failed: $e');
       // Final fallback: try to use navigator key
@@ -45,12 +34,12 @@ class NavigationService {
     }
   }
   
-  // Navigate to dashboard
-  static void redirectToDashboard(BuildContext context) {
+  // Navigate to workspace
+  static void redirectToWorkspace(BuildContext context) {
     try {
-      context.go('/dashboard');
+      context.go('/workspace');
     } catch (e) {
-      print('❌ Navigation to dashboard failed: $e');
+      print('❌ Navigation to workspace failed: $e');
     }
   }
   

@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:flutter_web_plugins/url_strategy.dart';
 
 import 'app.dart';
 import 'core/services/auth_service.dart';
 import 'core/services/error_handler.dart';
-import 'core/services/navigation_service.dart';
 import 'features/projects/data/repositories/project_repository.dart';
 import 'features/tasks/data/repositories/task_repository.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Use path-based URLs on web (no # in URL)
+  usePathUrlStrategy();
   
   // Initialize Hive for local storage
   await Hive.initFlutter();

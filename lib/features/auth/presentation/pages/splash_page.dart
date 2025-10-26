@@ -70,10 +70,10 @@ class _SplashPageState extends ConsumerState<SplashPage>
       print('🔍 Validating stored session...');
       final user = await AuthService.getMe();
       
-      // If user is valid, navigate to dashboard
+      // If user is valid, navigate to workspace
       if (user != null) {
-        print('✅ User authenticated via getMe, navigating to dashboard');
-        context.go('/dashboard');
+        print('✅ User authenticated via getMe, navigating to workspace');
+        context.go('/workspace');
       } else {
         print('❌ Stored session is invalid, navigating to login');
         context.go('/login');
@@ -95,7 +95,6 @@ class _SplashPageState extends ConsumerState<SplashPage>
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authStateProvider);
     final screenSize = MediaQuery.of(context).size;
     final isDesktop = screenSize.width > 600;
     

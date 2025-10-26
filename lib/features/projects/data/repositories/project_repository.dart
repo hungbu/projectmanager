@@ -310,6 +310,41 @@ class ProjectRepository {
     await clearLocalData();
     return getAllProjects();
   }
+
+  // Generate access code for project
+  Future<Map<String, dynamic>> generateAccessCode(String projectId) async {
+    try {
+      final endpoint = ApiEndpoints.generateAccessCode.replaceAll('{id}', projectId);
+      final response = await ApiService.post(endpoint, {});
+      return response;
+    } catch (e) {
+      print('❌ Error generating access code: $e');
+      rethrow;
+    }
+  }
+
+  // Revoke access code for project
+  Future<void> revokeAccessCode(String projectId) async {
+    try {
+      final endpoint = ApiEndpoints.revokeAccessCode.replaceAll('{id}', projectId);
+      await ApiService.delete(endpoint);
+    } catch (e) {
+      print('❌ Error revoking access code: $e');
+      rethrow;
+    }
+  }
+
+  // Get access code for project
+  Future<Map<String, dynamic>> getAccessCode(String projectId) async {
+    try {
+      final endpoint = ApiEndpoints.getAccessCode.replaceAll('{id}', projectId);
+      final response = await ApiService.get(endpoint);
+      return response;
+    } catch (e) {
+      print('❌ Error getting access code: $e');
+      rethrow;
+    }
+  }
 }
 
 // Provider

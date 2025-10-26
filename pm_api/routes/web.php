@@ -2,11 +2,6 @@
 
 use Illuminate\Support\Facades\Route;
 
-use App\Http\Controllers\Api\ProjectController;
-use App\Http\Controllers\Api\TaskController;
-use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\UserController;
-
 // Serve Flutter static files with correct MIME types (must come before catch-all)
 Route::get('/web/{file}', function ($file) {
     $path = public_path("web/{$file}");
@@ -47,43 +42,8 @@ Route::get('/', function () {
     return view('flutter-app');
 });
 
-
-// API routes (if any web routes are needed)
-Route::prefix('api')->group(function () {
-    Route::get('/csrf-token', function () {
-        return response()->json(['token' => csrf_token()]);
-    });
-    // Public routes (no authentication required)
-    Route::post('/register', [AuthController::class, 'register']);
-    Route::post('/login', [AuthController::class, 'login']);
-
-    // Protected routes (authentication required)
-    Route::middleware('auth:sanctum')->group(function () {
-        // Auth routes
-        Route::post('/logout', [AuthController::class, 'logout']);
-        Route::get('/user', [AuthController::class, 'user']);
-
-        // Project routes
-        Route::apiResource('projects', ProjectController::class);
-        Route::get('projects/{project}/members', [ProjectController::class, 'members']);
-        Route::post('projects/{project}/add-member', [ProjectController::class, 'addMember']);
-        Route::post('projects/{project}/remove-member', [ProjectController::class, 'removeMember']);
-        Route::get('projects/{project}/tasks', [ProjectController::class, 'tasks']);
-
-        // Task routes
-        Route::apiResource('tasks', TaskController::class);
-        Route::patch('tasks/{task}/status', [TaskController::class, 'updateStatus']);
-        Route::patch('tasks/{task}/assign', [TaskController::class, 'assign']);
-        Route::patch('tasks/{task}/unassign', [TaskController::class, 'unassign']);
-
-        // User management routes (admin only)
-
-        Route::apiResource('users', UserController::class);
-        Route::patch('users/{user}/toggle-status', [UserController::class, 'toggleStatus']);
-    });
-});
-
 // Catch-all route to serve Flutter app for SPA routing (must be last)
+// NOTE: All API routes are in api.php and will be prefixed with /api automatically
 Route::get('/{any}', function () {
     return view('flutter-app');
-})->where('any', '.*');
+})->where('any', '(?!api).*'); // Exclude /api/* from catch-all

@@ -5,14 +5,11 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/services/data_clear_service.dart';
-import '../../../../core/services/auth_service.dart';
-
 import '../../../../core/services/permission_service.dart';
 import '../../../../core/widgets/permission_wrapper.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../projects/data/repositories/project_repository.dart';
 import '../../../tasks/data/repositories/task_repository.dart';
-import '../../../users/presentation/pages/users_management_page.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
@@ -296,7 +293,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Settings'),
+        title: const Text('Profile'),
       ),
       body: _isClearingData
           ? const Center(
@@ -314,6 +311,131 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // User Info Card
+                  if (authState.user != null)
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(AppSizes.lg),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                CircleAvatar(
+                                  radius: 32,
+                                  backgroundColor: AppColors.primary,
+                                  child: Text(
+                                    authState.user!.fullName.substring(0, 1).toUpperCase(),
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 28,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: AppSizes.md),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        authState.user!.fullName,
+                                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        authState.user!.email,
+                                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                          color: AppColors.textSecondary,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 4,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.primary.withOpacity(0.1),
+                                          borderRadius: BorderRadius.circular(4),
+                                        ),
+                                        child: Text(
+                                          PermissionService.getUserRoleDisplayName(),
+                                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                            color: AppColors.primary,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  
+                  const SizedBox(height: AppSizes.lg),
+                  
+                  // Quick Actions
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(AppSizes.lg),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Quick Actions',
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
+                          const SizedBox(height: AppSizes.md),
+                          
+                          // Dashboard Button
+                          ListTile(
+                            leading: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(Icons.dashboard, color: AppColors.primary),
+                            ),
+                            title: const Text('Dashboard'),
+                            subtitle: const Text('View statistics and recent activities'),
+                            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                            onTap: () => context.go('/dashboard'),
+                          ),
+                          
+                          const Divider(),
+                          
+                          // User Management (Admin only)
+                          CanManageUsers(
+                            child: ListTile(
+                              leading: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: AppColors.info.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(Icons.people, color: AppColors.info),
+                              ),
+                              title: const Text('User Management'),
+                              subtitle: const Text('Manage users and permissions'),
+                              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                              onTap: () => context.push('/users'),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  
+                  const SizedBox(height: AppSizes.lg),
+                  
                   // Data Statistics
                   Card(
                     child: Padding(
@@ -337,7 +459,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   
                   const SizedBox(height: AppSizes.lg),
                   
-                  // Data Management
+                  // Account Actions
                   Card(
                     child: Padding(
                       padding: const EdgeInsets.all(AppSizes.lg),
@@ -345,92 +467,26 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Data Management',
+                            'Account',
                             style: Theme.of(context).textTheme.titleLarge,
                           ),
-                          const SizedBox(height: AppSizes.lg),
+                          const SizedBox(height: AppSizes.md),
                           
-                          // Force Refresh from API
+                          // Logout Button
                           ListTile(
-                            leading: const Icon(Icons.refresh),
-                            title: const Text('Refresh from API'),
-                            subtitle: const Text('Clear local data and fetch fresh from server'),
-                            onTap: _forceRefreshFromApi,
+                            leading: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: AppColors.error.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(Icons.logout, color: AppColors.error),
+                            ),
+                            title: const Text('Logout', style: TextStyle(color: AppColors.error)),
+                            subtitle: const Text('Sign out of your account'),
+                            trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.error),
+                            onTap: _logout,
                           ),
-                          
-                          const Divider(),
-                          
-                          // Clear Projects & Tasks
-                          ListTile(
-                            leading: const Icon(Icons.clear_all),
-                            title: const Text('Clear Projects & Tasks'),
-                            subtitle: const Text('Remove all local project and task data'),
-                            onTap: _clearProjectsAndTasks,
-                          ),
-                          
-                          const Divider(),
-                          
-                                                     // Clear All Data
-                           ListTile(
-                             leading: const Icon(Icons.delete_forever, color: AppColors.error),
-                             title: const Text('Clear All Data', style: TextStyle(color: AppColors.error)),
-                             subtitle: const Text('Remove all local data and logout'),
-                             onTap: _clearAllData,
-                           ),
-                           
-                           const Divider(),
-                           
-                           // User Management (Admin only)
-                           CanManageUsers(
-                             child: ListTile(
-                               leading: const Icon(Icons.people),
-                               title: const Text('User Management'),
-                               subtitle: const Text('Manage users and permissions'),
-                               onTap: () => context.push('/users'),
-                             ),
-                           ),
-                           
-                           const Divider(),
-                           
-                           // User Info
-                           if (authState.user != null)
-                             Card(
-                               child: Padding(
-                                 padding: const EdgeInsets.all(AppSizes.lg),
-                                 child: Column(
-                                   crossAxisAlignment: CrossAxisAlignment.start,
-                                   children: [
-                                     Text(
-                                       'User Information',
-                                       style: Theme.of(context).textTheme.titleLarge,
-                                     ),
-                                     const SizedBox(height: AppSizes.md),
-                                     _buildUserInfoItem('Name', authState.user!.fullName),
-                                     _buildUserInfoItem('Email', authState.user!.email),
-                                     _buildUserInfoItem('User ID', authState.user!.id.toString()),
-                                     _buildUserInfoItem('Role', PermissionService.getUserRoleDisplayName()),
-                                     const SizedBox(height: AppSizes.md),
-                                     const Divider(),
-                                     const SizedBox(height: AppSizes.sm),
-                                     SizedBox(
-                                       width: double.infinity,
-                                       child: OutlinedButton.icon(
-                                         onPressed: _logout,
-                                         icon: const Icon(Icons.logout, color: AppColors.error),
-                                         label: const Text('Logout', style: TextStyle(color: AppColors.error)),
-                                         style: OutlinedButton.styleFrom(
-                                           side: const BorderSide(color: AppColors.error),
-                                           padding: const EdgeInsets.symmetric(vertical: AppSizes.md),
-                                         ),
-                                       ),
-                                     ),
-                                   ],
-                                 ),
-                               ),
-                             ),
-                          
-                          const SizedBox(height: AppSizes.lg),
-
                         ],
                       ),
                     ),
@@ -452,24 +508,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           Text(label),
           Text(
             isBoolean ? (value == 1 ? 'Yes' : 'No') : value.toString(),
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildUserInfoItem(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSizes.xs),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label),
-          Text(
-            value,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               fontWeight: FontWeight.w500,
             ),

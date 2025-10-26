@@ -105,7 +105,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     ref.listen(authStateProvider, (previous, next) {
       if (next.user != null && previous?.user == null) {
         // User registered successfully
-        context.go('/dashboard');
+        context.go('/workspace');
       } else if (next.error != null) {
         // Show error message
         ScaffoldMessenger.of(context).showSnackBar(
