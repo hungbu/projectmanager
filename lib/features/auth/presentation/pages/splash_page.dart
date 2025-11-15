@@ -54,37 +54,34 @@ class _SplashPageState extends ConsumerState<SplashPage>
   
   Future<void> _checkStoredSession() async {
     try {
-      print('🔍 === SPLASH SESSION CHECK ===');
-      
+
       // First check if we have stored session data
       final hasStoredSession = await AuthService.hasStoredSession();
-      print('📱 Has stored session: $hasStoredSession');
-      
+
       if (!hasStoredSession) {
-        print('ℹ️ No stored session found, navigating to login');
+
         context.go('/login');
         return;
       }
       
       // Only try to validate session if we have stored data
-      print('🔍 Validating stored session...');
+
       final user = await AuthService.getMe();
       
       // If user is valid, navigate to workspace
       if (user != null) {
-        print('✅ User authenticated via getMe, navigating to workspace');
+
         context.go('/workspace');
       } else {
-        print('❌ Stored session is invalid, navigating to login');
+
         context.go('/login');
       }
     } catch (e) {
-      print('❌ Error checking session: $e');
+
       // On error, navigate to login
       context.go('/login');
     }
-    
-    print('🔍 === END SPLASH SESSION CHECK ===');
+
   }
 
   @override
@@ -103,10 +100,10 @@ class _SplashPageState extends ConsumerState<SplashPage>
       if (!next.isLoading) {
         // Auth state has been determined, let the router handle navigation
         if (next.user != null) {
-          print('🚀 User authenticated, navigating to dashboard');
+
           // User is authenticated, router will redirect to dashboard
         } else {
-          print('🔐 No valid session, navigating to login');
+
           // User is not authenticated, router will redirect to login
         }
       }

@@ -243,22 +243,14 @@ class ProjectManagerApp extends ConsumerWidget {
       initialLocation: '/splash',
       redirect: (context, state) {
         final authState = ref.watch(authStateProvider);
-        
-        print('🔄 Router redirect check:');
-        print('  - Current location: ${state.matchedLocation}');
-        print('  - Auth loading: ${authState.isLoading}');
-        print('  - Auth user: ${authState.user?.fullName ?? 'null'}');
-        print('  - Auth user ID: ${authState.user?.id ?? 'null'}');
-        
+
         // Allow public routes without authentication
         if (state.matchedLocation.startsWith('/public/')) {
-          print('  - Public route, no auth required');
           return null;
         }
         
         // If still loading, stay on splash
         if (authState.isLoading) {
-          print('  - Staying on splash (loading)');
           return '/splash';
         }
         
@@ -268,7 +260,6 @@ class ProjectManagerApp extends ConsumerWidget {
                            state.matchedLocation == '/register' ||
                            state.matchedLocation == '/splash';
           if (!isAuthPage) {
-            print('  - Redirecting to login (not authenticated)');
             return '/login';
           }
         }
@@ -279,12 +270,10 @@ class ProjectManagerApp extends ConsumerWidget {
                            state.matchedLocation == '/register' ||
                            state.matchedLocation == '/splash';
           if (isAuthPage) {
-            print('  - Redirecting to workspace (authenticated)');
             return '/workspace';
           }
         }
-        
-        print('  - No redirect needed');
+
         return null;
       },
       routes: [

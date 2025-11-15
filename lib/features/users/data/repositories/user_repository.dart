@@ -13,9 +13,7 @@ class UserRepository {
   Future<List<User>> getAllUsers() async {
     try {
       final response = await ApiService.get(ApiEndpoints.users);
-      
-      print('🔍 getAllUsers response: $response');
-      
+
       // Handle different response formats
       List<dynamic> data;
       if (response is Map<String, dynamic>) {
@@ -31,9 +29,7 @@ class UserRepository {
       } else {
         throw Exception('Unexpected response format: ${response.runtimeType}');
       }
-      
-      print('🔍 Users data to parse: $data');
-      
+
       final users = <User>[];
       for (int i = 0; i < data.length; i++) {
         try {
@@ -42,18 +38,16 @@ class UserRepository {
             final user = User.fromJson(userData);
             users.add(user);
           } else {
-            print('⚠️ Skipping invalid user data at index $i: $userData');
+
           }
         } catch (e) {
-          print('❌ Error parsing user at index $i: $e');
-          print('❌ User data: ${data[i]}');
+
         }
       }
-      
-      print('✅ Successfully parsed ${users.length} users');
+
       return users;
     } catch (e) {
-      print('❌ Error loading users: $e');
+
       throw Exception('Error loading users: $e');
     }
   }
@@ -67,8 +61,7 @@ class UserRepository {
     required UserRole role,
   }) async {
     try {
-      print('🔍 Creating user with data: {email: $email, name: $fullName, role: ${role.name}}');
-      
+
       final response = await ApiService.post(
         ApiEndpoints.users,
         {
@@ -79,9 +72,7 @@ class UserRepository {
           'role': role.name,
         },
       );
-      
-      print('🔍 createUser response: $response');
-      
+
       // Handle different response formats
       Map<String, dynamic> userData;
       if (response is Map<String, dynamic>) {
@@ -95,14 +86,11 @@ class UserRepository {
       } else {
         throw Exception('Unexpected response format: ${response.runtimeType}');
       }
-      
-      print('🔍 User data to parse: $userData');
-      
+
       final user = User.fromJson(userData);
-      print('✅ User created successfully: ${user.fullName} (${user.email})');
       return user;
     } catch (e) {
-      print('❌ Error creating user: $e');
+
       throw Exception('Error creating user: $e');
     }
   }
@@ -122,14 +110,10 @@ class UserRepository {
       if (role != null) updateData['role'] = role.name;
       if (isActive != null) updateData['is_active'] = isActive;
 
-      print('🔍 Updating user $userId with data: $updateData');
-
       final response = await ApiService.put(
         '${ApiEndpoints.users}/$userId',
         updateData,
       );
-
-      print('🔍 updateUser response: $response');
 
       // Handle different response formats
       Map<String, dynamic> userData;
@@ -145,13 +129,10 @@ class UserRepository {
         throw Exception('Unexpected response format: ${response.runtimeType}');
       }
 
-      print('🔍 User data to parse: $userData');
-
       final user = User.fromJson(userData);
-      print('✅ User updated successfully: ${user.fullName} (${user.email})');
       return user;
     } catch (e) {
-      print('❌ Error updating user: $e');
+
       throw Exception('Error updating user: $e');
     }
   }
@@ -168,14 +149,11 @@ class UserRepository {
   // Deactivate/Activate user
   Future<User> toggleUserStatus(String userId, bool isActive) async {
     try {
-      print('🔍 Toggling user $userId status to: $isActive');
 
       final response = await ApiService.put(
         '${ApiEndpoints.users}/$userId',
         {'is_active': isActive},
       );
-
-      print('🔍 toggleUserStatus response: $response');
 
       // Handle different response formats
       Map<String, dynamic> userData;
@@ -191,13 +169,10 @@ class UserRepository {
         throw Exception('Unexpected response format: ${response.runtimeType}');
       }
 
-      print('🔍 User data to parse: $userData');
-
       final user = User.fromJson(userData);
-      print('✅ User status updated successfully: ${user.fullName} (${user.email}) - Active: ${user.isActive}');
       return user;
     } catch (e) {
-      print('❌ Error updating user status: $e');
+
       throw Exception('Error updating user status: $e');
     }
   }

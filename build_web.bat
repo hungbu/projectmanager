@@ -119,129 +119,129 @@ if errorlevel 1 (
     echo [SUCCESS] Web files copied to Laravel public folder!
 )
 
-echo [INFO] Updating Laravel routes to serve Flutter web app...
-echo.
+@REM echo [INFO] Updating Laravel routes to serve Flutter web app...
+@REM echo.
 
-REM Create a backup of the current web.php
-copy "pm_api\routes\web.php" "pm_api\routes\web.php.backup" >nul
-echo [INFO] Backup created: pm_api\routes\web.php.backup
+@REM REM Create a backup of the current web.php
+@REM copy "pm_api\routes\web.php" "pm_api\routes\web.php.backup" >nul
+@REM echo [INFO] Backup created: pm_api\routes\web.php.backup
 
-REM Update the web.php file to serve the Flutter app
-(
-echo ^<?php
-echo.
-echo use Illuminate\Support\Facades\Route;
-echo.
-echo // Serve Flutter web app for the root route
-echo Route::get^('/', function ^(^) {
-echo     return view^('flutter-app'^);
-echo }^);
-echo.
-echo // API routes ^(if any web routes are needed^)
-echo Route::prefix^('api'^)-^>group^(function ^(^) {
-echo     // Add any web-specific API routes here
-echo }^);
-echo.
-echo // Catch-all route to serve Flutter app for SPA routing
-echo Route::get^('/{any}', function ^(^) {
-echo     return view^('flutter-app'^);
-echo }^)-^>where^('any', '.*'^);
-) > "pm_api\routes\web.php"
+@REM REM Update the web.php file to serve the Flutter app
+@REM (
+@REM echo ^<?php
+@REM echo.
+@REM echo use Illuminate\Support\Facades\Route;
+@REM echo.
+@REM echo // Serve Flutter web app for the root route
+@REM echo Route::get^('/', function ^(^) {
+@REM echo     return view^('flutter-app'^);
+@REM echo }^);
+@REM echo.
+@REM echo // API routes ^(if any web routes are needed^)
+@REM echo Route::prefix^('api'^)-^>group^(function ^(^) {
+@REM echo     // Add any web-specific API routes here
+@REM echo }^);
+@REM echo.
+@REM echo // Catch-all route to serve Flutter app for SPA routing
+@REM echo Route::get^('/{any}', function ^(^) {
+@REM echo     return view^('flutter-app'^);
+@REM echo }^)-^>where^('any', '.*'^);
+@REM ) > "pm_api\routes\web.php"
 
-echo [INFO] Creating Flutter app view template...
-echo.
+@REM echo [INFO] Creating Flutter app view template...
+@REM echo.
 
-REM Create the view template for the Flutter app
-if not exist "pm_api\resources\views" (
-    echo [INFO] Creating views directory...
-    mkdir "pm_api\resources\views"
-)
+@REM REM Create the view template for the Flutter app
+@REM if not exist "pm_api\resources\views" (
+@REM     echo [INFO] Creating views directory...
+@REM     mkdir "pm_api\resources\views"
+@REM )
 
-(
-echo ^<!DOCTYPE html^>
-echo ^<html lang="en"^>
-echo ^<head^>
-echo     ^<meta charset="UTF-8"^>
-echo     ^<meta name="viewport" content="width=device-width, initial-scale=1.0"^>
-echo     ^<title^>Project Manager App^</title^>
-echo     ^<meta name="description" content="A project management app similar to monday.com"^>
-echo     
-echo     ^<!-- Flutter Web App --^>
-echo     ^<script src="{{ asset^('web/flutter.js'^) }}" defer^>^</script^>
-echo     
-echo     ^<!-- Favicon --^>
-echo     ^<link rel="icon" type="image/x-icon" href="{{ asset^('web/favicon.png'^) }}"^>
-echo     
-echo     ^<!-- Preload critical resources --^>
-echo     ^<link rel="preload" href="{{ asset^('web/main.dart.js'^) }}" as="script"^>
-echo     ^<link rel="preload" href="{{ asset^('web/flutter.js'^) }}" as="script"^>
-echo ^</head^>
-echo ^<body^>
-echo     ^<div id="flutter-app"^>
-echo         ^<div id="loading"^>
-echo             ^<div style="display: flex; justify-content: center; align-items: center; height: 100vh; font-family: Arial, sans-serif;"^>
-echo                 ^<div style="text-align: center;"^>
-echo                     ^<div style="width: 50px; height: 50px; border: 3px solid #f3f3f3; border-top: 3px solid #3498db; border-radius: 50%%; animation: spin 1s linear infinite; margin: 0 auto 20px;"^>^</div^>
-echo                     ^<p^>Loading Project Manager App...^</p^>
-echo                 ^</div^>
-echo             ^</div^>
-echo         ^</div^>
-echo     ^</div^>
-echo     
-echo     ^<style^>
-echo         @keyframes spin {
-echo             0%% { transform: rotate^(0deg^); }
-echo             100%% { transform: rotate^(360deg^); }
-echo         }
-echo         
-echo         body {
-echo             margin: 0;
-echo             padding: 0;
-echo             font-family: Arial, sans-serif;
-echo         }
-echo         
-echo         #flutter-app {
-echo             width: 100%%;
-echo             height: 100vh;
-echo         }
-echo         
-echo         #loading {
-echo             position: fixed;
-echo             top: 0;
-echo             left: 0;
-echo             width: 100%%;
-echo             height: 100%%;
-echo             background: white;
-echo             z-index: 9999;
-echo         }
-echo     ^</style^>
-echo     
-echo     ^<script^>
-echo         window.addEventListener^('load', function^(^) {
-echo             // Initialize Flutter
-echo             _flutter.loader.loadEntrypoint^({
-echo                 serviceWorker: {
-echo                     serviceWorkerVersion: serviceWorkerVersion,
-echo                 },
-echo                 onEntrypointLoaded: function^(engineInitializer^) {
-echo                     engineInitializer.initializeEngine^(^).then^(function^(appRunner^) {
-echo                         appRunner.runApp^(^);
-echo                     }^);
-echo                 }
-echo             }^);
-echo             
-echo             // Hide loading screen when Flutter app is ready
-echo             window.addEventListener^('flutter-first-frame', function^(^) {
-echo                 document.getElementById^('loading'^).style.display = 'none';
-echo             }^);
-echo         }^);
-echo     ^</script^>
-echo ^</body^>
-echo ^</html^>
-) > "pm_api\resources\views\flutter-app.blade.php"
+@REM (
+@REM echo ^<!DOCTYPE html^>
+@REM echo ^<html lang="en"^>
+@REM echo ^<head^>
+@REM echo     ^<meta charset="UTF-8"^>
+@REM echo     ^<meta name="viewport" content="width=device-width, initial-scale=1.0"^>
+@REM echo     ^<title^>Project Manager App^</title^>
+@REM echo     ^<meta name="description" content="A project management app similar to monday.com"^>
+@REM echo     
+@REM echo     ^<!-- Flutter Web App --^>
+@REM echo     ^<script src="{{ asset^('web/flutter.js'^) }}" defer^>^</script^>
+@REM echo     
+@REM echo     ^<!-- Favicon --^>
+@REM echo     ^<link rel="icon" type="image/x-icon" href="{{ asset^('web/favicon.png'^) }}"^>
+@REM echo     
+@REM echo     ^<!-- Preload critical resources --^>
+@REM echo     ^<link rel="preload" href="{{ asset^('web/main.dart.js'^) }}" as="script"^>
+@REM echo     ^<link rel="preload" href="{{ asset^('web/flutter.js'^) }}" as="script"^>
+@REM echo ^</head^>
+@REM echo ^<body^>
+@REM echo     ^<div id="flutter-app"^>
+@REM echo         ^<div id="loading"^>
+@REM echo             ^<div style="display: flex; justify-content: center; align-items: center; height: 100vh; font-family: Arial, sans-serif;"^>
+@REM echo                 ^<div style="text-align: center;"^>
+@REM echo                     ^<div style="width: 50px; height: 50px; border: 3px solid #f3f3f3; border-top: 3px solid #3498db; border-radius: 50%%; animation: spin 1s linear infinite; margin: 0 auto 20px;"^>^</div^>
+@REM echo                     ^<p^>Loading Project Manager App...^</p^>
+@REM echo                 ^</div^>
+@REM echo             ^</div^>
+@REM echo         ^</div^>
+@REM echo     ^</div^>
+@REM echo     
+@REM echo     ^<style^>
+@REM echo         @keyframes spin {
+@REM echo             0%% { transform: rotate^(0deg^); }
+@REM echo             100%% { transform: rotate^(360deg^); }
+@REM echo         }
+@REM echo         
+@REM echo         body {
+@REM echo             margin: 0;
+@REM echo             padding: 0;
+@REM echo             font-family: Arial, sans-serif;
+@REM echo         }
+@REM echo         
+@REM echo         #flutter-app {
+@REM echo             width: 100%%;
+@REM echo             height: 100vh;
+@REM echo         }
+@REM echo         
+@REM echo         #loading {
+@REM echo             position: fixed;
+@REM echo             top: 0;
+@REM echo             left: 0;
+@REM echo             width: 100%%;
+@REM echo             height: 100%%;
+@REM echo             background: white;
+@REM echo             z-index: 9999;
+@REM echo         }
+@REM echo     ^</style^>
+@REM echo     
+@REM echo     ^<script^>
+@REM echo         window.addEventListener^('load', function^(^) {
+@REM echo             // Initialize Flutter
+@REM echo             _flutter.loader.loadEntrypoint^({
+@REM echo                 serviceWorker: {
+@REM echo                     serviceWorkerVersion: serviceWorkerVersion,
+@REM echo                 },
+@REM echo                 onEntrypointLoaded: function^(engineInitializer^) {
+@REM echo                     engineInitializer.initializeEngine^(^).then^(function^(appRunner^) {
+@REM echo                         appRunner.runApp^(^);
+@REM echo                     }^);
+@REM echo                 }
+@REM echo             }^);
+@REM echo             
+@REM echo             // Hide loading screen when Flutter app is ready
+@REM echo             window.addEventListener^('flutter-first-frame', function^(^) {
+@REM echo                 document.getElementById^('loading'^).style.display = 'none';
+@REM echo             }^);
+@REM echo         }^);
+@REM echo     ^</script^>
+@REM echo ^</body^>
+@REM echo ^</html^>
+@REM ) > "pm_api\resources\views\flutter-app.blade.php"
 
-echo [SUCCESS] Flutter app view template created!
-echo.
+@REM echo [SUCCESS] Flutter app view template created!
+@REM echo.
 
 echo [INFO] Setting proper permissions...
 icacls "%WEB_DIR%" /grant Everyone:F /T >nul 2>&1

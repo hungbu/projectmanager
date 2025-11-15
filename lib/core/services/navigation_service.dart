@@ -16,20 +16,19 @@ class NavigationService {
   // Navigate to login page and clear navigation stack
   static void redirectToLogin(BuildContext context) {
     try {
-      print('🔄 Attempting to navigate to login page...');
-      
+
       // Try to find GoRouter in the context
       final goRouter = GoRouter.of(context);
       goRouter.go('/login');
-      print('✅ Navigation to login successful using GoRouter');
+
     } catch (e) {
-      print('❌ Navigation to login failed: $e');
+
       // Final fallback: try to use navigator key
       try {
         _navigatorKey.currentState?.pushNamedAndRemoveUntil('/login', (route) => false);
-        print('✅ Final fallback navigation to login successful');
+
       } catch (e2) {
-        print('❌ All navigation attempts failed: $e2');
+
       }
     }
   }
@@ -39,7 +38,7 @@ class NavigationService {
     try {
       context.go('/workspace');
     } catch (e) {
-      print('❌ Navigation to workspace failed: $e');
+
     }
   }
   
@@ -62,13 +61,13 @@ class NavigationService {
             ),
           );
         } else {
-          print('⚠️ No ScaffoldMessenger found in context');
+
         }
       } catch (e) {
-        print('❌ Failed to show snackbar: $e');
+
       }
     } else {
-      print('⚠️ No context available for snackbar');
+
     }
   }
 } 

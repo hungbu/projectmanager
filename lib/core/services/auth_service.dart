@@ -25,11 +25,11 @@ class AuthService {
   // Preload CSRF token for authentication
   static Future<void> preloadCsrfToken() async {
     try {
-      print('🔐 Preloading CSRF token for authentication...');
+
       await ApiService.getCsrfToken();
-      print('✅ CSRF token preloaded successfully');
+
     } catch (e) {
-      print('⚠️ Failed to preload CSRF token: $e');
+
       // Continue anyway - some servers might not require CSRF for API endpoints
     }
   }
@@ -38,9 +38,7 @@ class AuthService {
   static Future<User?> getMe() async {
     try {
       final response = await ApiService.get(ApiEndpoints.user);
-      
-      print('🔍 getMe response: $response');
-      
+
       // Handle different response formats
       Map<String, dynamic> userData;
       if (response is Map<String, dynamic>) {
@@ -53,23 +51,19 @@ class AuthService {
       } else {
         throw Exception('Unexpected response format: ${response.runtimeType}');
       }
-      
-      print('🔍 User data to parse: $userData');
-      
+
       final user = User.fromJson(userData);
       await _saveUserData(user);
       _currentUser = user;
       return user;
     } catch (e) {
-      print('❌ getMe failed: $e');
-      print('🔍 Error details: ${e.runtimeType}');
-      
+
       // Only clear data if it's definitely a 401 error, not a network issue
       if (e.toString().contains('401') || e.toString().contains('Unauthorized')) {
-        print('🚨 Confirmed 401 error - clearing user data');
+
         await clearUserData();
       } else {
-        print('⚠️ Network or other error - keeping user data for retry');
+
       }
       return null;
     }
@@ -84,20 +78,16 @@ class AuthService {
       final prefs = await SharedPreferences.getInstance();
       final userData = prefs.getString('user_data');
       final authToken = prefs.getString('auth_token');
-      
-      print('🔍 Auth initialization - stored data:');
-      print('  - User data: ${userData != null ? 'Present' : 'Missing'}');
-      print('  - Auth token: ${authToken != null ? 'Present' : 'Missing'}');
-      
+
       if (userData != null && authToken != null) {
         try {
           // Try to parse stored user data
           try {
             final userJson = json.decode(userData) as Map<String, dynamic>;
             _currentUser = User.fromJson(userJson);
-            print('✅ Stored user data parsed successfully');
+
           } catch (e) {
-            print('❌ Error parsing stored user data: $e');
+
             // Clear corrupted user data
             await prefs.remove('user_data');
             _currentUser = null;
@@ -110,31 +100,27 @@ class AuthService {
           final user = await getMe();
           if (user != null) {
             _currentUser = user;
-            print('✅ Session validated successfully via getme endpoint');
+
           } else {
             // Don't clear data immediately - let the user try again
-            print('⚠️ Session validation failed via getme endpoint, but keeping data for retry');
+
           }
         } catch (e) {
           // Don't clear data on network errors
-          print('❌ Session validation error via getme endpoint: $e');
-          print('⚠️ Keeping stored data for retry');
+
         }
       } else {
-        print('ℹ️ No stored session found');
+
       }
     } catch (e) {
-      print('❌ Error during auth service initialization: $e');
+
       await clearUserData();
     }
   }
 
   // Login user
   static Future<User> login(String email, String password) async {
-    print('🔐 === AUTH SERVICE LOGIN START ===');
-    print('📧 Email: $email');
-    print('🔑 Password: ${password.length} characters');
-    
+
     // Preload CSRF token before making login request
     await preloadCsrfToken();
     
@@ -146,8 +132,6 @@ class AuthService {
       },
       includeCsrf: true, // Explicitly include CSRF token
     );
-
-    print('🔍 Login response: $response');
 
     // Handle different response formats
     Map<String, dynamic> userData;
@@ -167,44 +151,38 @@ class AuthService {
       throw Exception('Unexpected response format: ${response.runtimeType}');
     }
 
-    print('🔍 User data from login: $userData');
-    print('🔍 Token from login: ${token.substring(0, 20)}...');
-
     final user = User.fromJson(userData);
 
     // Save token and user data
-    print('💾 Starting token save process...');
+
     try {
       await ApiService.saveAuthToken(token);
-      print('✅ Token save completed');
+
     } catch (e) {
-      print('❌ Error saving token: $e');
+
     }
-    
-    print('💾 Starting user data save process...');
+
     try {
       await _saveUserData(user);
-      print('✅ User data save completed');
+
     } catch (e) {
-      print('❌ Error saving user data: $e');
+
     }
     
     _currentUser = user;
     
     // Verify token was actually saved
-    print('🔍 Verifying token was saved to storage...');
+
     try {
       final prefs = await SharedPreferences.getInstance();
       final savedToken = prefs.getString('auth_token');
       if (savedToken == token) {
-        print('✅ Token verification successful - token is in storage');
+
       } else {
-        print('❌ Token verification failed');
-        print('  - Expected: ${token.substring(0, 20)}...');
-        print('  - Got: ${savedToken?.substring(0, 20) ?? 'null'}...');
+
       }
     } catch (e) {
-      print('❌ Error verifying token: $e');
+
     }
     
     // Force refresh API service token to ensure it's loaded
@@ -216,28 +194,23 @@ class AuthService {
     // Verify token is properly set
     final currentToken = ApiService.getCurrentToken();
     if (currentToken != null) {
-      print('✅ Token properly set after login: ${currentToken.substring(0, 20)}...');
     } else {
-      print('⚠️ Token not properly set after login');
-      
+
       // Try to force refresh one more time
       await ApiService.refreshTokenFromStorage();
       final retryToken = ApiService.getCurrentToken();
       if (retryToken != null) {
-        print('✅ Token set after retry: ${retryToken.substring(0, 20)}...');
       } else {
-        print('❌ Token still not available after retry');
+
       }
     }
 
-    print('🔐 === AUTH SERVICE LOGIN END ===');
     return user;
   }
 
   // Register user
   static Future<User> register(String name, String email, String password, String passwordConfirmation) async {
-    print('🔐 === AUTH SERVICE REGISTER START ===');
-    
+
     // Preload CSRF token before making register request
     await preloadCsrfToken();
     
@@ -252,8 +225,6 @@ class AuthService {
       includeCsrf: true, // Explicitly include CSRF token
     );
 
-    print('🔍 Register response: $response');
-
     // Handle different response formats
     Map<String, dynamic> userData;
     String token;
@@ -272,9 +243,6 @@ class AuthService {
       throw Exception('Unexpected response format: ${response.runtimeType}');
     }
 
-    print('🔍 User data from register: $userData');
-    print('🔍 Token from register: ${token.substring(0, 20)}...');
-
     final user = User.fromJson(userData);
 
     // Save token and user data
@@ -282,7 +250,6 @@ class AuthService {
     await _saveUserData(user);
     _currentUser = user;
 
-    print('🔐 === AUTH SERVICE REGISTER END ===');
     return user;
   }
 
@@ -343,9 +310,9 @@ class AuthService {
   
   // Clear corrupted data and start fresh
   static Future<void> clearCorruptedData() async {
-    print('🧹 Clearing corrupted data...');
+
     await clearUserData();
-    print('✅ Corrupted data cleared');
+
   }
 }
 

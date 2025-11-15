@@ -45,14 +45,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
 
-    print('🔐 === LOGIN PAGE HANDLE LOGIN ===');
-    print('📧 Email: ${_emailController.text}');
-    print('🔑 Password: ${_passwordController.text.length} characters');
-
     final authNotifier = ref.read(authStateProvider.notifier);
-    print('🔄 Calling auth provider login...');
+
     await authNotifier.login(_emailController.text, _passwordController.text);
-    print('✅ Auth provider login completed');
 
     // Test API connection to ensure token is working
     await Future.delayed(const Duration(milliseconds: 500)); // Wait for state to settle
@@ -61,24 +56,23 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     if (mounted) {
       final success = await ApiService.testApiConnection();
       if (success) {
-        print('✅ API connection test passed after login');
+
       } else {
-        print('❌ API connection test failed after login');
-        
+
         // Try macOS-specific fix
-        print('🔄 Trying macOS-specific token fix...');
+
         await ApiService.forceClearAndReinitialize();
         await ApiService.refreshTokenFromStorage();
         
         final retrySuccess = await ApiService.testApiConnection();
         if (retrySuccess) {
-          print('✅ API connection test passed after macOS fix');
+
         } else {
-          print('❌ API connection test still failed after macOS fix');
+
         }
       }
     } else {
-      print('⚠️ Widget disposed, skipping API test');
+
     }
   }
 

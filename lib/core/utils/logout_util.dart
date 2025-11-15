@@ -6,25 +6,16 @@ import '../services/navigation_service.dart';
 class LogoutUtil {
   // Test logout functionality
   static Future<void> testLogout(BuildContext context) async {
-    print('🧪 === TESTING LOGOUT FUNCTIONALITY ===');
-    
+
     try {
       // Check current auth state
       final isAuthenticated = AuthService.isAuthenticated;
       final currentUser = AuthService.currentUser;
-      
-      print('🔍 Current Auth State:');
-      print('  - Is Authenticated: $isAuthenticated');
-      print('  - Current User: ${currentUser?.fullName ?? 'None'}');
-      
+
       if (isAuthenticated) {
-        print('🔄 Performing logout...');
+
         await AuthService.logout();
-        
-        print('✅ Logout completed');
-        print('  - Is Authenticated: ${AuthService.isAuthenticated}');
-        print('  - Current User: ${AuthService.currentUser?.fullName ?? 'None'}');
-        
+
         // Show success message
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -35,8 +26,7 @@ class LogoutUtil {
           );
         }
       } else {
-        print('ℹ️ No user logged in to logout');
-        
+
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -47,8 +37,7 @@ class LogoutUtil {
         }
       }
     } catch (e) {
-      print('❌ Logout test error: $e');
-      
+
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -58,19 +47,15 @@ class LogoutUtil {
         );
       }
     }
-    
-    print('🧪 === END LOGOUT TEST ===');
+
   }
   
   // Force logout (for testing)
   static Future<void> forceLogout(BuildContext context) async {
-    print('🚨 === FORCE LOGOUT ===');
-    
+
     try {
       await AuthService.clearUserData();
-      
-      print('✅ Force logout completed');
-      
+
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -83,8 +68,7 @@ class LogoutUtil {
         NavigationService.redirectToLogin(context);
       }
     } catch (e) {
-      print('❌ Force logout error: $e');
-      
+
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -94,8 +78,7 @@ class LogoutUtil {
         );
       }
     }
-    
-    print('🚨 === END FORCE LOGOUT ===');
+
   }
   
   // Check logout status

@@ -15,10 +15,9 @@ class DataClearService {
       
       // Clear auth data
       await AuthService.clearUserData();
-      
-      print('All local data cleared successfully');
+
     } catch (e) {
-      print('Error clearing local data: $e');
+
       rethrow;
     }
   }
@@ -27,9 +26,9 @@ class DataClearService {
   static Future<void> clearHiveData() async {
     try {
       await _clearHiveData();
-      print('Hive data cleared successfully');
+
     } catch (e) {
-      print('Error clearing Hive data: $e');
+
       rethrow;
     }
   }
@@ -38,9 +37,9 @@ class DataClearService {
   static Future<void> clearSharedPreferencesData() async {
     try {
       await _clearSharedPreferences();
-      print('SharedPreferences data cleared successfully');
+
     } catch (e) {
-      print('Error clearing SharedPreferences data: $e');
+
       rethrow;
     }
   }
@@ -49,9 +48,9 @@ class DataClearService {
   static Future<void> clearAuthData() async {
     try {
       await AuthService.clearUserData();
-      print('Auth data cleared successfully');
+
     } catch (e) {
-      print('Error clearing auth data: $e');
+
       rethrow;
     }
   }
@@ -101,7 +100,7 @@ class DataClearService {
       stats['has_user_data'] = hasUserData ? 1 : 0;
 
     } catch (e) {
-      print('Error getting data statistics: $e');
+
     }
 
     return stats;

@@ -22,6 +22,7 @@ class WorkspacePage extends ConsumerStatefulWidget {
 
 class _WorkspacePageState extends ConsumerState<WorkspacePage> {
   final Map<String, bool> _expandedProjects = {};
+  ProjectStatus? _statusFilter = ProjectStatus.active; // Default to active
 
   @override
   Widget build(BuildContext context) {
@@ -31,6 +32,70 @@ class _WorkspacePageState extends ConsumerState<WorkspacePage> {
       appBar: AppBar(
         title: const Text('Workspace'),
         actions: [
+          // Status Filter Dropdown
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppColors.border),
+            ),
+            child: DropdownButton<ProjectStatus?>(
+              value: _statusFilter,
+              underline: const SizedBox(),
+              icon: const Icon(Icons.filter_list, size: 20),
+              style: Theme.of(context).textTheme.bodyMedium,
+              dropdownColor: AppColors.surface,
+              items: [
+                DropdownMenuItem<ProjectStatus?>(
+                  value: null,
+                  child: Row(
+                    children: [
+                      Icon(Icons.all_inclusive, size: 16, color: AppColors.textSecondary),
+                      const SizedBox(width: 8),
+                      const Text('All'),
+                    ],
+                  ),
+                ),
+                DropdownMenuItem<ProjectStatus?>(
+                  value: ProjectStatus.active,
+                  child: Row(
+                    children: [
+                      Icon(Icons.play_circle, size: 16, color: AppColors.success),
+                      const SizedBox(width: 8),
+                      const Text('Active'),
+                    ],
+                  ),
+                ),
+                DropdownMenuItem<ProjectStatus?>(
+                  value: ProjectStatus.completed,
+                  child: Row(
+                    children: [
+                      Icon(Icons.check_circle, size: 16, color: AppColors.primary),
+                      const SizedBox(width: 8),
+                      const Text('Completed'),
+                    ],
+                  ),
+                ),
+                DropdownMenuItem<ProjectStatus?>(
+                  value: ProjectStatus.archived,
+                  child: Row(
+                    children: [
+                      Icon(Icons.archive, size: 16, color: AppColors.textTertiary),
+                      const SizedBox(width: 8),
+                      const Text('Archived'),
+                    ],
+                  ),
+                ),
+              ],
+              onChanged: (value) {
+                setState(() {
+                  _statusFilter = value;
+                });
+              },
+            ),
+          ),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
@@ -49,7 +114,12 @@ class _WorkspacePageState extends ConsumerState<WorkspacePage> {
   }
 
   Widget _buildWorkspace(List<Project> projects) {
-    if (projects.isEmpty) {
+    // Filter projects by status
+    final filteredProjects = _statusFilter == null
+        ? projects
+        : projects.where((p) => p.status == _statusFilter).toList();
+
+    if (filteredProjects.isEmpty) {
       return _buildEmptyState();
     }
 
@@ -60,9 +130,9 @@ class _WorkspacePageState extends ConsumerState<WorkspacePage> {
       },
       child: ListView.builder(
         padding: const EdgeInsets.all(AppSizes.md),
-        itemCount: projects.length,
+        itemCount: filteredProjects.length,
         itemBuilder: (context, index) {
-          final project = projects[index];
+          final project = filteredProjects[index];
           return _buildProjectSection(project);
         },
       ),

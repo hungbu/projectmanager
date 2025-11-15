@@ -130,8 +130,40 @@ enum TaskStatus {
         return 'In Progress';
       case TaskStatus.review:
         return 'Review';
-      case TaskStatus.done:
+case TaskStatus.done:
         return 'Done';
+    }
+  }
+
+  // Convert to snake_case for API
+  String get apiValue {
+    switch (this) {
+      case TaskStatus.todo:
+        return 'todo';
+      case TaskStatus.inProgress:
+        return 'in_progress';
+      case TaskStatus.review:
+        return 'review';
+      case TaskStatus.done:
+        return 'done';
+    }
+  }
+
+  // Parse from API response (snake_case to enum)
+  static TaskStatus fromApiValue(String value) {
+    switch (value.toLowerCase()) {
+      case 'todo':
+        return TaskStatus.todo;
+      case 'in_progress':
+      case 'inprogress':
+      case 'in-progress':
+        return TaskStatus.inProgress;
+      case 'review':
+        return TaskStatus.review;
+      case 'done':
+        return TaskStatus.done;
+      default:
+        return TaskStatus.todo;
     }
   }
 

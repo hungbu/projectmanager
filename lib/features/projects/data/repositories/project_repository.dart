@@ -17,11 +17,9 @@ class ProjectRepository {
   // Get all projects from API
   Future<List<Project>> getAllProjects() async {
     try {
-      print('🔍 Fetching projects from API...');
+
       final response = await ApiService.get(ApiEndpoints.projects);
-      print('✅ API Response received: ${response.runtimeType}');
-      print('Response content: $response');
-      
+
       List<dynamic> projectsData;
       
       if (response is Map<String, dynamic>) {
@@ -33,10 +31,10 @@ class ProjectRepository {
         }
       } else if (response is List<dynamic>) {
         // Direct array response from Laravel API
-        print('📊 Found ${response.length} projects in response');
+
         projectsData = response;
       } else {
-        print('❌ Unexpected response type: ${response.runtimeType}');
+
         return [];
       }
       
@@ -45,22 +43,20 @@ class ProjectRepository {
         try {
           final projectData = projectsData[i];
           if (projectData is Map<String, dynamic>) {
-            print('🔄 Converting project data: ${projectData.runtimeType}');
+
             final project = _fromApiMap(projectData);
             projects.add(project);
           } else {
-            print('⚠️ Skipping invalid project data at index $i: $projectData');
+
           }
         } catch (e) {
-          print('❌ Error parsing project at index $i: $e');
-          print('❌ Project data: ${projectsData[i]}');
+
         }
       }
-      
-      print('✅ Successfully converted ${projects.length} projects');
+
       return projects;
     } catch (e) {
-      print('❌ Error fetching projects from API: $e');
+
       // Fallback to local storage if API fails
       return _getAllProjectsFromLocal();
     }
@@ -214,7 +210,7 @@ class ProjectRepository {
           return null;
         }).whereType<User>().toList();
       } catch (e) {
-        print('❌ Error parsing users for project ${data['id']}: $e');
+
         users = [];
       }
     }
@@ -318,7 +314,7 @@ class ProjectRepository {
       final response = await ApiService.post(endpoint, {});
       return response;
     } catch (e) {
-      print('❌ Error generating access code: $e');
+
       rethrow;
     }
   }
@@ -329,7 +325,7 @@ class ProjectRepository {
       final endpoint = ApiEndpoints.revokeAccessCode.replaceAll('{id}', projectId);
       await ApiService.delete(endpoint);
     } catch (e) {
-      print('❌ Error revoking access code: $e');
+
       rethrow;
     }
   }
@@ -341,7 +337,7 @@ class ProjectRepository {
       final response = await ApiService.get(endpoint);
       return response;
     } catch (e) {
-      print('❌ Error getting access code: $e');
+
       rethrow;
     }
   }

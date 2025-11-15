@@ -17,9 +17,7 @@ class TaskRepository {
   Future<List<Task>> getAllTasks() async {
     try {
       final response = await ApiService.get(ApiEndpoints.tasks);
-      
-      print('🔍 getAllTasks response: $response');
-      
+
       // Handle different response formats
       List<dynamic> tasksData;
       if (response is Map<String, dynamic>) {
@@ -35,9 +33,7 @@ class TaskRepository {
       } else {
         throw Exception('Unexpected response format: ${response.runtimeType}');
       }
-      
-      print('🔍 Tasks data to parse: $tasksData');
-      
+
       final tasks = <Task>[];
       for (int i = 0; i < tasksData.length; i++) {
         try {
@@ -46,18 +42,16 @@ class TaskRepository {
             final task = _fromApiMap(taskData);
             tasks.add(task);
           } else {
-            print('⚠️ Skipping invalid task data at index $i: $taskData');
+
           }
         } catch (e) {
-          print('❌ Error parsing task at index $i: $e');
-          print('❌ Task data: ${tasksData[i]}');
+
         }
       }
-      
-      print('✅ Successfully parsed ${tasks.length} tasks');
+
       return tasks;
     } catch (e) {
-      print('❌ Error loading tasks: $e');
+
       // Fallback to local storage if API fails
       return _getAllTasksFromLocal();
     }
@@ -78,9 +72,7 @@ class TaskRepository {
   Future<List<Task>> getTasksByProjectId(String projectId) async {
     try {
       final response = await ApiService.get('${ApiEndpoints.projects}/$projectId/tasks');
-      
-      print('🔍 getTasksByProjectId response: $response');
-      
+
       // Handle different response formats
       List<dynamic> tasksData;
       if (response is Map<String, dynamic>) {
@@ -105,17 +97,16 @@ class TaskRepository {
             final task = _fromApiMap(taskData);
             tasks.add(task);
           } else {
-            print('⚠️ Skipping invalid task data at index $i: $taskData');
+
           }
         } catch (e) {
-          print('❌ Error parsing task at index $i: $e');
-          print('❌ Task data: ${tasksData[i]}');
+
         }
       }
       
       return tasks;
     } catch (e) {
-      print('❌ Error loading tasks by project: $e');
+
       // Fallback to local storage if API fails
       return _getTasksByProjectIdFromLocal(projectId);
     }
@@ -125,9 +116,7 @@ class TaskRepository {
   Future<List<Task>> getTasksByAssigneeId(String assigneeId) async {
     try {
       final response = await ApiService.get('${ApiEndpoints.tasks}?assignee_id=$assigneeId');
-      
-      print('🔍 getTasksByAssigneeId response: $response');
-      
+
       // Handle different response formats
       List<dynamic> tasksData;
       if (response is Map<String, dynamic>) {
@@ -152,17 +141,16 @@ class TaskRepository {
             final task = _fromApiMap(taskData);
             tasks.add(task);
           } else {
-            print('⚠️ Skipping invalid task data at index $i: $taskData');
+
           }
         } catch (e) {
-          print('❌ Error parsing task at index $i: $e');
-          print('❌ Task data: ${tasksData[i]}');
+
         }
       }
       
       return tasks;
     } catch (e) {
-      print('❌ Error loading tasks by assignee: $e');
+
       // Fallback to local storage if API fails
       return _getTasksByAssigneeIdFromLocal(assigneeId);
     }
@@ -172,9 +160,7 @@ class TaskRepository {
   Future<List<Task>> getTasksByStatus(String projectId, TaskStatus status) async {
     try {
       final response = await ApiService.get('${ApiEndpoints.tasks}?project_id=$projectId&status=${status.name}');
-      
-      print('🔍 getTasksByStatus response: $response');
-      
+
       // Handle different response formats
       List<dynamic> tasksData;
       if (response is Map<String, dynamic>) {
@@ -199,17 +185,16 @@ class TaskRepository {
             final task = _fromApiMap(taskData);
             tasks.add(task);
           } else {
-            print('⚠️ Skipping invalid task data at index $i: $taskData');
+
           }
         } catch (e) {
-          print('❌ Error parsing task at index $i: $e');
-          print('❌ Task data: ${tasksData[i]}');
+
         }
       }
       
       return tasks;
     } catch (e) {
-      print('❌ Error loading tasks by status: $e');
+
       // Fallback to local storage if API fails
       final tasks = await _getTasksByProjectIdFromLocal(projectId);
       return tasks.where((task) => task.status == status).toList();
@@ -268,7 +253,7 @@ class TaskRepository {
     try {
       final response = await ApiService.patch(
         ApiEndpoints.replacePathParams(ApiEndpoints.taskStatus, {'id': taskId}),
-        {'status': status.name},
+        {'status': status.apiValue},
       );
       
       final updatedTask = _fromApiMap(response);
@@ -382,10 +367,7 @@ class TaskRepository {
       id: data['id'].toString(),
       title: data['title'] as String,
       description: data['description'] as String? ?? '',
-      status: TaskStatus.values.firstWhere(
-        (e) => e.name == data['status'],
-        orElse: () => TaskStatus.todo,
-      ),
+      status: TaskStatus.fromApiValue(data['status'] as String? ?? 'todo'),
       priority: TaskPriority.values.firstWhere(
         (e) => e.name == data['priority'],
         orElse: () => TaskPriority.medium,
@@ -411,7 +393,7 @@ class TaskRepository {
       'project_id': task.projectId,
       'title': task.title,
       'description': task.description,
-      'status': task.status.name,
+      'status': task.status.apiValue,
       'priority': task.priority.name,
       'assignee_id': task.assigneeId,
       'due_date': task.dueDate?.toIso8601String(),

@@ -8,6 +8,9 @@ use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\PublicAccessController;
 
 // Public routes (no authentication required)
+Route::get('/csrf-token', function () {
+    return response()->json(['token' => csrf_token()]);
+});
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 

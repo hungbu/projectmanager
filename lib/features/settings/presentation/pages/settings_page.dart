@@ -285,8 +285,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     }
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authStateProvider);
@@ -491,7 +489,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       ),
                     ),
                   ),
-                  
 
                 ],
               ),

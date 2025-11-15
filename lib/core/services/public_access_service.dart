@@ -28,7 +28,7 @@ class PublicAccessService {
         throw Exception('Failed to load project: ${response.statusCode}');
       }
     } catch (e) {
-      print('❌ Error fetching project by access code: $e');
+
       rethrow;
     }
   }
@@ -53,7 +53,7 @@ class PublicAccessService {
         throw Exception('Failed to load tasks: ${response.statusCode}');
       }
     } catch (e) {
-      print('❌ Error fetching tasks by access code: $e');
+
       rethrow;
     }
   }
@@ -78,7 +78,7 @@ class PublicAccessService {
         };
       }
     } catch (e) {
-      print('❌ Error verifying access code: $e');
+
       return {
         'valid': false,
         'message': 'Error verifying access code: $e',
