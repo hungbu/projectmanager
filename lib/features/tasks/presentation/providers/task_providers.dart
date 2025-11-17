@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/repositories/task_repository.dart';
 import '../../domain/entities/task.dart';
+import '../../domain/entities/picked_file.dart';
 
 // Task list provider
 final tasksProvider = FutureProvider<List<Task>>((ref) async {
@@ -56,18 +57,18 @@ class TaskNotifier extends StateNotifier<AsyncValue<List<Task>>> {
     }
   }
 
-  Future<void> createTask(Task task) async {
+  Future<void> createTask(Task task, {List<PickedFile>? pickedFiles}) async {
     try {
-      await _repository.createTask(task);
+      await _repository.createTask(task, pickedFiles: pickedFiles);
       await _loadTasks();
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
     }
   }
 
-  Future<void> updateTask(Task task) async {
+  Future<void> updateTask(Task task, {List<PickedFile>? pickedFiles}) async {
     try {
-      await _repository.updateTask(task);
+      await _repository.updateTask(task, pickedFiles: pickedFiles);
       await _loadTasks();
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);

@@ -111,10 +111,37 @@ class ProjectController extends Controller
     public function members(Request $request, $id)
     {
         $user = $request->user();
-        $project = Project::where('owner_id', $user->id)->findOrFail($id);
         
-        $members = $project->users()->select('id', 'name', 'email', 'role')->get();
-        return response()->json($members);
+        // Check if user is owner or member of the project
+        $project = Project::where(function($query) use ($user) {
+            $query->where('owner_id', $user->id)
+                  ->orWhereHas('users', function($q) use ($user) {
+                      $q->where('user_id', $user->id);
+                  });
+        })->findOrFail($id);
+        
+        // Get all members from project_user table
+        $memberIds = $project->users()->get()->pluck('id')->toArray();
+        
+        // Get owner
+        $owner = $project->owner;
+        
+        // Combine member IDs with owner ID
+        $allMemberIds = array_unique(array_merge($memberIds, $owner ? [$owner->id] : []));
+        
+        // Get all users (members + owner)
+        $allMembers = User::whereIn('id', $allMemberIds)
+            ->get(['id', 'name', 'email', 'role'])
+            ->map(function($user) {
+                return [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'role' => $user->role,
+                ];
+            });
+        
+        return response()->json($allMembers);
     }
 
     // Add a member to a project

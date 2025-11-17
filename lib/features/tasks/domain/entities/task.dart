@@ -15,6 +15,7 @@ class Task extends Equatable {
   final List<String> tags;
   final int? estimatedHours;
   final int? actualHours;
+  final List<String> attachments; // URLs or file paths
 
   const Task({
     required this.id,
@@ -30,6 +31,7 @@ class Task extends Equatable {
     this.tags = const [],
     this.estimatedHours,
     this.actualHours,
+    this.attachments = const [],
   });
 
   factory Task.create({
@@ -41,6 +43,7 @@ class Task extends Equatable {
     DateTime? dueDate,
     List<String> tags = const [],
     int? estimatedHours,
+    List<String> attachments = const [],
   }) {
     final now = DateTime.now();
     return Task(
@@ -56,6 +59,7 @@ class Task extends Equatable {
       updatedAt: now,
       tags: tags,
       estimatedHours: estimatedHours,
+      attachments: attachments,
     );
   }
 
@@ -73,6 +77,7 @@ class Task extends Equatable {
     List<String>? tags,
     int? estimatedHours,
     int? actualHours,
+    List<String>? attachments,
   }) {
     return Task(
       id: id ?? this.id,
@@ -88,6 +93,7 @@ class Task extends Equatable {
       tags: tags ?? this.tags,
       estimatedHours: estimatedHours ?? this.estimatedHours,
       actualHours: actualHours ?? this.actualHours,
+      attachments: attachments ?? this.attachments,
     );
   }
 
@@ -113,6 +119,7 @@ class Task extends Equatable {
         tags,
         estimatedHours,
         actualHours,
+        attachments,
       ];
 }
 

@@ -1,9 +1,17 @@
+import 'dart:convert';
+import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:http/http.dart' as http;
 
 import '../../../../core/services/api_service.dart';
 import '../../../../core/constants/api_endpoints.dart';
 import '../../domain/entities/task.dart';
+import '../../domain/entities/picked_file.dart';
+
+// Conditional import: use dart:io for mobile/desktop, stub for web
+import 'dart:io' if (dart.library.html) 'io_stub.dart' as io;
 
 class TaskRepository {
   static const String _boxName = 'tasks';
@@ -202,12 +210,43 @@ class TaskRepository {
   }
 
   // Create task via API
-  Future<Task> createTask(Task task) async {
+  Future<Task> createTask(Task task, {List<PickedFile>? pickedFiles}) async {
     try {
-      final response = await ApiService.post(
-        ApiEndpoints.tasks,
-        _toApiMap(task),
-      );
+      dynamic response;
+      
+      // If files are provided, use multipart upload
+      if (pickedFiles != null && pickedFiles.isNotEmpty) {
+        final fields = _toApiMap(task);
+        final multipartFiles = await _createMultipartFiles(pickedFiles);
+        
+        // Convert fields to string map, handling nulls and arrays
+        final stringFields = <String, String>{};
+        fields.forEach((key, value) {
+          if (value == null) {
+            stringFields[key] = '';
+          } else if (value is List) {
+            // Send arrays as JSON strings for Laravel to parse
+            stringFields[key] = jsonEncode(value);
+          } else if (value is Enum) {
+            // Handle enums by using their name property
+            stringFields[key] = value.name;
+          } else {
+            stringFields[key] = value.toString();
+          }
+        });
+        
+        response = await ApiService.postMultipart(
+          ApiEndpoints.tasks,
+          stringFields,
+          multipartFiles,
+        );
+      } else {
+        // Regular JSON request
+        response = await ApiService.post(
+          ApiEndpoints.tasks,
+          _toApiMap(task),
+        );
+      }
       
       final createdTask = _fromApiMap(response);
       await _saveTaskToLocal(createdTask);
@@ -220,12 +259,43 @@ class TaskRepository {
   }
 
   // Update task via API
-  Future<Task> updateTask(Task task) async {
+  Future<Task> updateTask(Task task, {List<PickedFile>? pickedFiles}) async {
     try {
-      final response = await ApiService.put(
-        '${ApiEndpoints.tasks}/${task.id}',
-        _toApiMap(task),
-      );
+      dynamic response;
+      
+      // If files are provided, use multipart upload
+      if (pickedFiles != null && pickedFiles.isNotEmpty) {
+        final fields = _toApiMap(task);
+        final multipartFiles = await _createMultipartFiles(pickedFiles);
+        
+        // Convert fields to string map, handling nulls and arrays
+        final stringFields = <String, String>{};
+        fields.forEach((key, value) {
+          if (value == null) {
+            stringFields[key] = '';
+          } else if (value is List) {
+            // Send arrays as JSON strings for Laravel to parse
+            stringFields[key] = jsonEncode(value);
+          } else if (value is Enum) {
+            // Handle enums by using their name property
+            stringFields[key] = value.name;
+          } else {
+            stringFields[key] = value.toString();
+          }
+        });
+        
+        response = await ApiService.putMultipart(
+          '${ApiEndpoints.tasks}/${task.id}',
+          stringFields,
+          multipartFiles,
+        );
+      } else {
+        // Regular JSON request
+        response = await ApiService.put(
+          '${ApiEndpoints.tasks}/${task.id}',
+          _toApiMap(task),
+        );
+      }
       
       final updatedTask = _fromApiMap(response);
       await _saveTaskToLocal(updatedTask);
@@ -384,6 +454,9 @@ class TaskRepository {
           : [],
       estimatedHours: data['estimated_hours'] as int?,
       actualHours: data['actual_hours'] as int?,
+      attachments: data['attachments'] != null
+          ? List<String>.from(data['attachments'] as List)
+          : [],
     );
   }
 
@@ -399,7 +472,41 @@ class TaskRepository {
       'due_date': task.dueDate?.toIso8601String(),
       'estimated_hours': task.estimatedHours,
       'tags': task.tags,
+      'attachments': task.attachments,
     };
+  }
+
+  // Create multipart files from PickedFile objects (supports both web and mobile)
+  Future<List<http.MultipartFile>> _createMultipartFiles(List<PickedFile> pickedFiles) async {
+    final multipartFiles = <http.MultipartFile>[];
+    
+    for (int i = 0; i < pickedFiles.length; i++) {
+      final pickedFile = pickedFiles[i];
+      Uint8List fileBytes;
+      
+      if (pickedFile.isWeb) {
+        // On web, use bytes directly
+        fileBytes = pickedFile.bytes!;
+      } else {
+        // On mobile/desktop, read from file path
+        // This code will be tree-shaken on web builds
+        if (kIsWeb) {
+          throw UnsupportedError('File path access is not supported on web');
+        }
+        final file = io.File(pickedFile.path!);
+        fileBytes = await file.readAsBytes();
+      }
+      
+      multipartFiles.add(
+        http.MultipartFile.fromBytes(
+          'files[]', // Laravel expects files[] for multiple files
+          fileBytes,
+          filename: pickedFile.name,
+        ),
+      );
+    }
+    
+    return multipartFiles;
   }
 
   // Local storage conversion methods (for fallback)
@@ -418,6 +525,7 @@ class TaskRepository {
       'tags': task.tags,
       'estimatedHours': task.estimatedHours,
       'actualHours': task.actualHours,
+      'attachments': task.attachments,
     };
   }
 
@@ -444,6 +552,9 @@ class TaskRepository {
       tags: List<String>.from(map['tags'] as List),
       estimatedHours: map['estimatedHours'] as int?,
       actualHours: map['actualHours'] as int?,
+      attachments: map['attachments'] != null
+          ? List<String>.from(map['attachments'] as List)
+          : [],
     );
   }
 

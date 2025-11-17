@@ -19,10 +19,12 @@ class Task extends Model
         'due_date',
         'estimated_hours',
         'tags',
+        'attachments',
     ];
 
     protected $casts = [
         'tags' => 'array',
+        'attachments' => 'array',
         'due_date' => 'date',
     ];
 

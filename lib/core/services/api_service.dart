@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -363,6 +362,80 @@ class ApiService {
       );
 
       if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw _handleError(response);
+      }
+    } catch (e) {
+      throw Exception('Network error: $e');
+    }
+  }
+
+  // Multipart POST request for file uploads
+  static Future<dynamic> postMultipart(
+    String endpoint,
+    Map<String, String> fields,
+    List<http.MultipartFile> files, {
+    bool includeCsrf = true,
+  }) async {
+    try {
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse('$_baseUrl$endpoint'),
+      );
+
+      // Add headers (without Content-Type, as multipart sets it automatically)
+      final headers = await getHeaders(includeCsrf: includeCsrf);
+      headers.remove('Content-Type'); // Remove Content-Type for multipart
+      request.headers.addAll(headers);
+
+      // Add fields
+      request.fields.addAll(fields);
+
+      // Add files
+      request.files.addAll(files);
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return json.decode(response.body);
+      } else {
+        throw _handleError(response);
+      }
+    } catch (e) {
+      throw Exception('Network error: $e');
+    }
+  }
+
+  // Multipart PUT request for file uploads
+  static Future<dynamic> putMultipart(
+    String endpoint,
+    Map<String, String> fields,
+    List<http.MultipartFile> files, {
+    bool includeCsrf = true,
+  }) async {
+    try {
+      final request = http.MultipartRequest(
+        'PUT',
+        Uri.parse('$_baseUrl$endpoint'),
+      );
+
+      // Add headers (without Content-Type, as multipart sets it automatically)
+      final headers = await getHeaders(includeCsrf: includeCsrf);
+      headers.remove('Content-Type'); // Remove Content-Type for multipart
+      request.headers.addAll(headers);
+
+      // Add fields
+      request.fields.addAll(fields);
+
+      // Add files
+      request.files.addAll(files);
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return json.decode(response.body);
+      } else {
         throw _handleError(response);
       }
     } catch (e) {

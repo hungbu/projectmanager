@@ -2,10 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../domain/entities/task.dart';
+import '../../domain/entities/picked_file.dart';
 import '../providers/task_providers.dart';
 import '../widgets/create_task_dialog.dart';
+import '../widgets/image_thumbnail_widget.dart';
+import '../widgets/image_viewer_dialog.dart';
+import '../../../../core/constants/api_endpoints.dart';
 
 class TaskDetailPage extends ConsumerWidget {
   final String taskId;
@@ -118,7 +123,7 @@ class TaskDetailPage extends ConsumerWidget {
             Row(
               children: [
                 Expanded(
-                  child: Text(
+                  child: SelectableText(
                     task.title,
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                       fontWeight: FontWeight.bold,
@@ -236,7 +241,7 @@ class TaskDetailPage extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
+                        SelectableText(
                           task.assigneeId!.replaceAll('_', ' ').toUpperCase(),
                           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w600,
@@ -337,7 +342,7 @@ class TaskDetailPage extends ConsumerWidget {
                     color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: Text(
+                  child: SelectableText(
                     tag,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: Theme.of(context).colorScheme.primary,
@@ -367,7 +372,7 @@ class TaskDetailPage extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 16),
-            Text(
+            SelectableText(
               task.description,
               style: Theme.of(context).textTheme.bodyLarge,
             ),
@@ -377,7 +382,21 @@ class TaskDetailPage extends ConsumerWidget {
     );
   }
 
+  String _getFullUrl(String url) {
+    // If URL is already full (starts with http), return as is
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+    // Otherwise, prepend base URL (remove /api if present)
+    final baseUrl = ApiEndpoints.baseUrl.replaceAll('/api', '');
+    return '$baseUrl$url';
+  }
+
   Widget _buildAttachmentsSection(BuildContext context, Task task) {
+    final attachments = task.attachments;
+    final images = attachments.where((url) => url.isImageUrl).toList();
+    final files = attachments.where((url) => !url.isImageUrl).toList();
+    
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(20.0),
@@ -395,9 +414,13 @@ class TaskDetailPage extends ConsumerWidget {
                 const Spacer(),
                 IconButton(
                   onPressed: () {
-                    // TODO: Implement file upload
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('File upload coming soon!')),
+                    // Show edit dialog to add more attachments
+                    showDialog(
+                      context: context,
+                      builder: (context) => CreateTaskDialog(
+                        projectId: task.projectId,
+                        task: task,
+                      ),
                     );
                   },
                   icon: const Icon(Icons.attach_file),
@@ -406,12 +429,77 @@ class TaskDetailPage extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 16),
-            _buildEmptyState(
-              context,
-              'No attachments',
-              'Add files, documents, or images to this task',
-              Icons.attach_file,
-            ),
+            if (attachments.isEmpty)
+              _buildEmptyState(
+                context,
+                'No attachments',
+                'Add files, documents, or images to this task',
+                Icons.attach_file,
+              )
+            else
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Image thumbnails
+                  if (images.isNotEmpty) ...[
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: images.map((imageUrl) {
+                        final fileName = imageUrl.split('/').last;
+                        final fullUrl = _getFullUrl(imageUrl);
+                        return ImageThumbnailWidget(
+                          imageUrl: fullUrl,
+                          imageName: fileName,
+                          size: 30,
+                          onTap: () {
+                            showDialog(
+                              context: context,
+                              builder: (context) => ImageViewerDialog(
+                                imageUrl: fullUrl,
+                                imageName: fileName,
+                              ),
+                            );
+                          },
+                        );
+                      }).toList(),
+                    ),
+                    if (files.isNotEmpty) const SizedBox(height: 16),
+                  ],
+                  // Other files list
+                  if (files.isNotEmpty) ...[
+                    ...files.map((fileUrl) {
+                      final fileName = fileUrl.split('/').last;
+                      final fullUrl = _getFullUrl(fileUrl);
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4.0),
+                        child: InkWell(
+                          onTap: () async {
+                            final uri = Uri.parse(fullUrl);
+                            if (await canLaunchUrl(uri)) {
+                              await launchUrl(uri, mode: LaunchMode.externalApplication);
+                            }
+                          },
+                          child: Row(
+                            children: [
+                              const Icon(Icons.insert_drive_file, size: 20),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  fileName,
+                                  style: const TextStyle(fontSize: 14),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const Icon(Icons.download, size: 18),
+                            ],
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ],
+                ],
+              ),
           ],
         ),
       ),
@@ -509,7 +597,7 @@ class TaskDetailPage extends ConsumerWidget {
             ),
           ),
           Expanded(
-            child: Text(
+            child: SelectableText(
               value,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: isOverdue ? Theme.of(context).colorScheme.error : null,

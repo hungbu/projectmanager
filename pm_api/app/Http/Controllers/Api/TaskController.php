@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use App\Models\Task;
 use App\Models\Project;
 use App\Models\User;
@@ -38,6 +39,29 @@ class TaskController extends Controller
     public function store(Request $request)
     {
         $user = $request->user();
+        
+        // Parse attachments if sent as JSON string (from multipart form)
+        $attachmentsInput = $request->input('attachments');
+        if (is_string($attachmentsInput)) {
+            $decoded = json_decode($attachmentsInput, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                $request->merge(['attachments' => $decoded]);
+            } else {
+                $request->merge(['attachments' => []]);
+            }
+        }
+        
+        // Parse tags if sent as JSON string
+        $tagsInput = $request->input('tags');
+        if (is_string($tagsInput)) {
+            $decoded = json_decode($tagsInput, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                $request->merge(['tags' => $decoded]);
+            } else {
+                $request->merge(['tags' => []]);
+            }
+        }
+        
         $validated = $request->validate([
             'project_id' => 'required|exists:projects,id',
             'title' => 'required|string|max:255',
@@ -48,6 +72,7 @@ class TaskController extends Controller
             'due_date' => 'nullable|date',
             'estimated_hours' => 'nullable|integer',
             'tags' => 'nullable|array',
+            'attachments' => 'nullable|array',
         ]);
 
         // Ensure the project belongs to the authenticated user or user is a member
@@ -57,6 +82,22 @@ class TaskController extends Controller
                       $q->where('user_id', $user->id);
                   });
         })->findOrFail($validated['project_id']);
+        
+        // Handle file uploads
+        $attachmentPaths = [];
+        if ($request->hasFile('files')) {
+            foreach ($request->file('files') as $file) {
+                // Store file in public storage
+                $path = $file->store('tasks/' . $validated['project_id'], 'public');
+                $attachmentPaths[] = Storage::url($path);
+            }
+        }
+        
+        // Merge uploaded file paths with any existing attachments
+        if (!empty($attachmentPaths)) {
+            $existingAttachments = $validated['attachments'] ?? [];
+            $validated['attachments'] = array_merge($existingAttachments, $attachmentPaths);
+        }
         
         $task = Task::create($validated);
         return response()->json($task->load(['project', 'assignee']), 201);
@@ -90,6 +131,28 @@ class TaskController extends Controller
               });
         })->findOrFail($id);
         
+        // Parse attachments if sent as JSON string (from multipart form)
+        $attachmentsInput = $request->input('attachments');
+        if (is_string($attachmentsInput)) {
+            $decoded = json_decode($attachmentsInput, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                $request->merge(['attachments' => $decoded]);
+            } else {
+                $request->merge(['attachments' => []]);
+            }
+        }
+        
+        // Parse tags if sent as JSON string
+        $tagsInput = $request->input('tags');
+        if (is_string($tagsInput)) {
+            $decoded = json_decode($tagsInput, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                $request->merge(['tags' => $decoded]);
+            } else {
+                $request->merge(['tags' => []]);
+            }
+        }
+        
         $validated = $request->validate([
             'project_id' => 'sometimes|exists:projects,id',
             'title' => 'sometimes|required|string|max:255',
@@ -100,7 +163,25 @@ class TaskController extends Controller
             'due_date' => 'nullable|date',
             'estimated_hours' => 'nullable|integer',
             'tags' => 'nullable|array',
+            'attachments' => 'nullable|array',
         ]);
+        
+        // Handle file uploads
+        $attachmentPaths = [];
+        if ($request->hasFile('files')) {
+            foreach ($request->file('files') as $file) {
+                // Store file in public storage
+                $path = $file->store('tasks/' . $task->project_id, 'public');
+                $attachmentPaths[] = Storage::url($path);
+            }
+        }
+        
+        // Merge uploaded file paths with existing attachments
+        if (!empty($attachmentPaths)) {
+            $existingAttachments = $task->attachments ?? [];
+            $newAttachments = $validated['attachments'] ?? [];
+            $validated['attachments'] = array_merge($existingAttachments, $newAttachments, $attachmentPaths);
+        }
         
         $task->update($validated);
         return response()->json($task->load(['project', 'assignee']));
